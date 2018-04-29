@@ -33,7 +33,9 @@ import org.cloudsimplus.autoscaling.HorizontalVmScalingSimple;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.examples.ParallelSimulationsExample;
 import org.cloudsimplus.listeners.CloudletVmEventInfo;
+import org.cloudsimplus.listeners.EventInfo;
 import org.cloudsimplus.listeners.EventListener;
+import org.omg.CORBA.INTERNAL;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,66 +64,48 @@ public class MigrationWithEnergy implements Runnable{
 
     private DatacenterBroker broker;
 
+    MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
+        this.allocationPolicy=allocationPolicy;
+    }
 
     @Override
     public void run() {
 
         simulation = new CloudSim();
 
+        simulation.addOnClockTickListener(this::createNewCloudlets);
+
         Datacenter datacenter0 = createDatacenter(allocationPolicy);
         datacenter0.setLog(false);
         broker = new DatacenterBrokerSimple(simulation);
 
-        dynamicCreateVmsAndTasks(broker);
+        broker.setVmDestructionDelayFunction(vm -> 0.0);
+
+        initVms();
+
+        initCloudLets();
+
+        broker.submitVmList(vmList);
+        broker.submitCloudletList(cloudletList);
 
         simulation.start();
 
     }
 
 
+    /*---------------------------------------------------------动态请求--------------------------------------------*/
 
-    public MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
-        this.allocationPolicy=allocationPolicy;
-    }
-
-
-    private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
-
-//        Vm vm=createVm(vmList.size(),broker,1+random.nextInt(VM_PES));
-        Vm vm=createVm(vmList.size(),broker,VM_PES);
+    public void initVms(){
+        Vm vm = new VmSimple(vmList.size(),VM_MIPS, VM_PES);
+        vm
+            .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
+            .setCloudletScheduler(new CloudletSchedulerSpaceShared());
+        vm.getUtilizationHistory().enable();
+        createHorizontalVmScaling(vm);
         vmList.add(vm);
-        broker.submitVm(vm);
-
-
-        UtilizationModelFull um = new UtilizationModelFull();
-        Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
-        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
-        cloudletList.add(cloudlet);
-        broker.submitCloudlet(cloudlet);
-
-
-
 
     }
 
-
-    private List<Vm> createListOfScalableVms(final int numberOfVms) {
-        List<Vm> newList = new ArrayList<>(numberOfVms);
-        for (int i = 0; i < numberOfVms; i++) {
-            Vm vm = createVm();
-            createHorizontalVmScaling(vm);
-            newList.add(vm);
-        }
-
-        return newList;
-    }
-
-    /**
-     * Creates a {@link HorizontalVmScaling} object for a given VM.
-     *
-     * @param vm the VM for which the Horizontal Scaling will be created
-     * @see #createListOfScalableVms(int)
-     */
     private void createHorizontalVmScaling(Vm vm) {
         HorizontalVmScaling horizontalScaling = new HorizontalVmScalingSimple();
         horizontalScaling
@@ -130,14 +114,64 @@ public class MigrationWithEnergy implements Runnable{
         vm.setHorizontalScaling(horizontalScaling);
     }
 
-
+    private Vm createVm() {
+        int id=vmList.size();
+        Vm vm=new VmSimple(id, VM_MIPS,VM_PES)
+            .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
+            .setCloudletScheduler(new CloudletSchedulerSpaceShared());
+        createHorizontalVmScaling(vm);
+        vmList.add(vm);
+        return vm;
+    }
 
     private boolean isVmOverloaded(Vm vm) {
         return vm.getCpuPercentUsage() > 0.7;
     }
 
 
+    public void initCloudLets(){
 
+        UtilizationModelFull um = new UtilizationModelFull();
+
+        Cloudlet cloudlet = new CloudletSimple(CLOUDLET_LENGHT+2000*random.nextInt(10),VM_PES)
+                .setFileSize(CLOUDLET_FILESIZE)
+                .setOutputSize(CLOUDLET_OUTPUTSIZE)
+                .setUtilizationModelCpu(um)
+                .setUtilizationModelRam(um)
+                .setUtilizationModelBw(um);
+
+        cloudlet.addOnFinishListener(eventInfo->destroyVm(eventInfo,broker));
+        cloudletList.add(cloudlet);
+
+    }
+
+    private void destroyVm(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
+        Log.printFormattedLine("\n\t#Cloudlet %d finished. destroy VM %d \n",
+            eventInfo.getCloudlet().getId(),eventInfo.getVm().getId());
+        eventInfo.getVm().getHost().destroyVm(eventInfo.getVm());
+    }
+
+    private void createNewCloudlets(EventInfo eventInfo) {
+        if (cloudletList.size()>=VMS){
+            return;
+        }
+        final long time = (long) eventInfo.getTime();
+        UtilizationModelFull um = new UtilizationModelFull();
+        if (time % Req_INTERVAL == 0 && time <= 50) {
+            Log.printFormattedLine("\t#Creating Cloudlet at time %d.", time);
+            Cloudlet cloudlet = new CloudletSimple(CLOUDLET_LENGHT+2000*random.nextInt(10),VM_PES)
+                .setFileSize(CLOUDLET_FILESIZE)
+                .setOutputSize(CLOUDLET_OUTPUTSIZE)
+                .setUtilizationModelCpu(um)
+                .setUtilizationModelRam(um)
+                .setUtilizationModelBw(um);
+            cloudlet.addOnFinishListener(eventInfoVm->destroyVm(eventInfoVm,broker));
+            cloudletList.add(cloudlet);
+            broker.submitCloudlet(cloudlet);
+        }
+    }
+
+/*---------------------------------------------初始化底层网络----------------------------------------------------*/
 
     private Datacenter createDatacenter(VmAllocationPolicy allocationPolicy) {
         this.hostList = new ArrayList<>();
@@ -179,13 +213,63 @@ public class MigrationWithEnergy implements Runnable{
     }
 
 
-    private Vm createVm() {
-        int id=vmList.size();
-        return new VmSimple(id, 1000, 2)
-            .setRam(512).setBw(1000).setSize(10000)
-            .setCloudletScheduler(new CloudletSchedulerTimeShared());
+/*-----------------------------------------------打印----------------------------------------------------------*/
+
+
+
+    public void print() {
+        final List<Cloudlet> finishedList = broker.getCloudletFinishedList();
+        finishedList.sort(
+            Comparator.comparingInt((Cloudlet c) -> c.getVm().getHost().getId())
+                .thenComparingInt(c -> c.getVm().getId()));
+        new CloudletsTableBuilder(cloudletList).build();
+
+        System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
+
+        for (Host host:hostList){
+            PrintHelper.printHistory(host);
+        }
+
+        PrintHelper.printEnergy(hostList);
+
+        Log.printConcatLine( "finished!");
     }
 
+
+
+
+
+/*--------------------------------------------------------------------------------deprecated----------------------*/
+
+    private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
+        if (vmList.size()>=VMS){
+            return;
+        }
+        Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
+            eventInfo.getCloudlet().getId(),1);
+        dynamicCreateVmsAndTasks(broker);
+
+    }
+
+
+    private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
+
+//        Vm vm=createVm(vmList.size(),broker,1+random.nextInt(VM_PES));
+        Vm vm=createVm(vmList.size(),broker,VM_PES);
+        vmList.add(vm);
+        broker.submitVm(vm);
+
+
+        UtilizationModelFull um = new UtilizationModelFull();
+        Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
+        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
+        cloudletList.add(cloudlet);
+        broker.submitCloudlet(cloudlet);
+
+
+
+
+    }
     public Vm createVm(int id,DatacenterBroker broker, int pes) {
 //        Vm vm = new VmSimple(id,VM_MIPS, 1+random.nextInt(pes));
         Vm vm = new VmSimple(id,VM_MIPS, pes);
@@ -211,47 +295,6 @@ public class MigrationWithEnergy implements Runnable{
         broker.bindCloudletToVm(cloudlet, vm);
         return cloudlet;
     }
-
-
-    private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
-
-        if (vmList.size()>=VMS){
-            return;
-        }
-
-        Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
-            eventInfo.getCloudlet().getId(),1);
-
-
-        dynamicCreateVmsAndTasks(broker);
-
-    }
-
-
-
-
-
-
-    public void print() {
-        final List<Cloudlet> finishedList = broker.getCloudletFinishedList();
-        finishedList.sort(
-            Comparator.comparingInt((Cloudlet c) -> c.getVm().getHost().getId())
-                .thenComparingInt(c -> c.getVm().getId()));
-        new CloudletsTableBuilder(cloudletList).build();
-
-        System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
-
-        for (Host host:hostList){
-            PrintHelper.printHistory(host);
-        }
-
-        PrintHelper.printEnergy(hostList);
-
-        Log.printConcatLine( "finished!");
-    }
-
-
-
 
 
 }

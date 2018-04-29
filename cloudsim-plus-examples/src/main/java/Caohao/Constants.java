@@ -6,10 +6,11 @@ package Caohao;
 
 public class Constants {
 
-    static final int SCHEDULE_INTERVAL = 1;
+    static final int SCHEDULE_INTERVAL = 2;
+    static final int Req_INTERVAL= 2 ;
 
     static final int HOSTS = 2;
-    static final int VMS = 12;
+    static final int VMS = 4;
 //    static final int TASKS=5;
 
     static final int    HOST_MIPS = 1000; //for each PE
