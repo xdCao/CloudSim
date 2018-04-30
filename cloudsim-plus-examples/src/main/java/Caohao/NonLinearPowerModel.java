@@ -16,6 +16,9 @@ public class NonLinearPowerModel extends PowerModelAbstract {
 
     @Override
     protected double getPowerInternal(double utilization) throws IllegalArgumentException {
+        if (utilization==0.00){
+            return 0;
+        }
         if (utilization<=0.125){
             return 500+17.6*utilization*100;
         }else {

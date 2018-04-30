@@ -6,11 +6,11 @@ package Caohao;
 
 public class Constants {
 
-    static final int SCHEDULE_INTERVAL = 2;
+    static final int SCHEDULE_INTERVAL = 1;
     static final int Req_INTERVAL= 2 ;
 
-    static final int HOSTS = 2;
-    static final int VMS = 4;
+    static final int HOSTS = 5;
+    static final int VMS = 25;
 //    static final int TASKS=5;
 
     static final int    HOST_MIPS = 1000; //for each PE
@@ -39,5 +39,18 @@ public class Constants {
     static final double HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION = 0.7;
 
     static final double CLOUDLET_CPU_INCREMENT_PER_SECOND = 0.1;
+
+    public static int[] vmPes={ 1,3,4,7,6,
+                                4,5,3,2,5,
+                                6,1,9,6,4,
+                                5,1,7,8,5,
+                                6,7,4,5,3};//25个vm的pes
+
+    public static int[] taskLength={12000,10000,11000,18000,16000,
+                                    15000,19000,11000,12000,16000,
+                                    17000,15000,10000,17000,12000,
+                                    18000,14000,12000,13000,15000,
+                                    18000,19000,10000,16000,18000};//25个task的length
+
 
 }

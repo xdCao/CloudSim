@@ -64,112 +64,38 @@ public class MigrationWithEnergy implements Runnable{
 
     private DatacenterBroker broker;
 
+    private double time;
+
+    private int index=0;
+
+    private int taskIndex=0;
+
     MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
         this.allocationPolicy=allocationPolicy;
     }
+
 
     @Override
     public void run() {
 
         simulation = new CloudSim();
 
-        simulation.addOnClockTickListener(this::createNewCloudlets);
 
         Datacenter datacenter0 = createDatacenter(allocationPolicy);
-        datacenter0.setLog(false);
+        datacenter0.setLog(true);
         broker = new DatacenterBrokerSimple(simulation);
 
-        broker.setVmDestructionDelayFunction(vm -> 0.0);
 
-        initVms();
+        dynamicCreateVmsAndTasks(broker);
 
-        initCloudLets();
+//        simulation.terminateAt(80);
 
-        broker.submitVmList(vmList);
-        broker.submitCloudletList(cloudletList);
+        time = simulation.start();
 
-        simulation.start();
+
 
     }
 
-
-    /*---------------------------------------------------------动态请求--------------------------------------------*/
-
-    public void initVms(){
-        Vm vm = new VmSimple(vmList.size(),VM_MIPS, VM_PES);
-        vm
-            .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
-            .setCloudletScheduler(new CloudletSchedulerSpaceShared());
-        vm.getUtilizationHistory().enable();
-        createHorizontalVmScaling(vm);
-        vmList.add(vm);
-
-    }
-
-    private void createHorizontalVmScaling(Vm vm) {
-        HorizontalVmScaling horizontalScaling = new HorizontalVmScalingSimple();
-        horizontalScaling
-            .setVmSupplier(this::createVm)
-            .setOverloadPredicate(this::isVmOverloaded);
-        vm.setHorizontalScaling(horizontalScaling);
-    }
-
-    private Vm createVm() {
-        int id=vmList.size();
-        Vm vm=new VmSimple(id, VM_MIPS,VM_PES)
-            .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
-            .setCloudletScheduler(new CloudletSchedulerSpaceShared());
-        createHorizontalVmScaling(vm);
-        vmList.add(vm);
-        return vm;
-    }
-
-    private boolean isVmOverloaded(Vm vm) {
-        return vm.getCpuPercentUsage() > 0.7;
-    }
-
-
-    public void initCloudLets(){
-
-        UtilizationModelFull um = new UtilizationModelFull();
-
-        Cloudlet cloudlet = new CloudletSimple(CLOUDLET_LENGHT+2000*random.nextInt(10),VM_PES)
-                .setFileSize(CLOUDLET_FILESIZE)
-                .setOutputSize(CLOUDLET_OUTPUTSIZE)
-                .setUtilizationModelCpu(um)
-                .setUtilizationModelRam(um)
-                .setUtilizationModelBw(um);
-
-        cloudlet.addOnFinishListener(eventInfo->destroyVm(eventInfo,broker));
-        cloudletList.add(cloudlet);
-
-    }
-
-    private void destroyVm(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
-        Log.printFormattedLine("\n\t#Cloudlet %d finished. destroy VM %d \n",
-            eventInfo.getCloudlet().getId(),eventInfo.getVm().getId());
-        eventInfo.getVm().getHost().destroyVm(eventInfo.getVm());
-    }
-
-    private void createNewCloudlets(EventInfo eventInfo) {
-        if (cloudletList.size()>=VMS){
-            return;
-        }
-        final long time = (long) eventInfo.getTime();
-        UtilizationModelFull um = new UtilizationModelFull();
-        if (time % Req_INTERVAL == 0 && time <= 50) {
-            Log.printFormattedLine("\t#Creating Cloudlet at time %d.", time);
-            Cloudlet cloudlet = new CloudletSimple(CLOUDLET_LENGHT+2000*random.nextInt(10),VM_PES)
-                .setFileSize(CLOUDLET_FILESIZE)
-                .setOutputSize(CLOUDLET_OUTPUTSIZE)
-                .setUtilizationModelCpu(um)
-                .setUtilizationModelRam(um)
-                .setUtilizationModelBw(um);
-            cloudlet.addOnFinishListener(eventInfoVm->destroyVm(eventInfoVm,broker));
-            cloudletList.add(cloudlet);
-            broker.submitCloudlet(cloudlet);
-        }
-    }
 
 /*---------------------------------------------初始化底层网络----------------------------------------------------*/
 
@@ -235,27 +161,27 @@ public class MigrationWithEnergy implements Runnable{
         Log.printConcatLine( "finished!");
     }
 
-
-
-
-
-/*--------------------------------------------------------------------------------deprecated----------------------*/
+/*--------------------------------------------------------------------------------动态请求----------------------*/
 
     private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
-        if (vmList.size()>=VMS){
-            return;
+
+        eventInfo.getVm().getHost().destroyVm(eventInfo.getVm());
+
+        if (vmList.size()<VMS){
+            Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
+                eventInfo.getCloudlet().getId(),1);
+            dynamicCreateVmsAndTasks(broker);
         }
-        Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
-            eventInfo.getCloudlet().getId(),1);
-        dynamicCreateVmsAndTasks(broker);
+
 
     }
 
 
     private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
 
-//        Vm vm=createVm(vmList.size(),broker,1+random.nextInt(VM_PES));
-        Vm vm=createVm(vmList.size(),broker,VM_PES);
+        Vm vm=createVm(vmList.size(),broker,Constants.vmPes[index]);
+//        Vm vm=createVm(vmList.size(),broker,VM_PES);
+        index++;
         vmList.add(vm);
         broker.submitVm(vm);
 
@@ -267,11 +193,8 @@ public class MigrationWithEnergy implements Runnable{
         broker.submitCloudlet(cloudlet);
 
 
-
-
     }
     public Vm createVm(int id,DatacenterBroker broker, int pes) {
-//        Vm vm = new VmSimple(id,VM_MIPS, 1+random.nextInt(pes));
         Vm vm = new VmSimple(id,VM_MIPS, pes);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
@@ -285,16 +208,26 @@ public class MigrationWithEnergy implements Runnable{
 
         UtilizationModel utilizationModelFull = new UtilizationModelFull();
         final Cloudlet cloudlet =
-//            new CloudletSimple(CLOUDLET_LENGHT+random.nextInt(CLOUDLET_LENGHT),vm.getNumberOfPes())
-            new CloudletSimple(CLOUDLET_LENGHT,vm.getNumberOfPes())
+            new CloudletSimple(Constants.taskLength[taskIndex],vm.getNumberOfPes())
                 .setFileSize(CLOUDLET_FILESIZE)
                 .setOutputSize(CLOUDLET_OUTPUTSIZE)
                 .setUtilizationModelCpu(cpuUtilizationModel)
                 .setUtilizationModelRam(utilizationModelFull)
                 .setUtilizationModelBw(utilizationModelFull);
         broker.bindCloudletToVm(cloudlet, vm);
+        taskIndex++;
         return cloudlet;
     }
 
+    /*-----------------------------------------------------getter-----------------------------------------------------*/
+
+    public List<Host> getHostList() {
+        return hostList;
+    }
+
+
+    public double getTime() {
+        return time;
+    }
 
 }
