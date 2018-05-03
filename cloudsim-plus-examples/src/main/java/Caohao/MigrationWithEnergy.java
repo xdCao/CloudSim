@@ -1,41 +1,33 @@
 package Caohao;
 
-import jdk.nashorn.internal.runtime.AllocationStrategy;
+import Caohao.Model.NonLinearPowerModel;
+import Caohao.entity.QosCloudlet;
+import Caohao.entity.QosVm;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
-import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationMedianAbsoluteDeviation;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationStaticThreshold;
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
+import org.cloudbus.cloudsim.brokers.DatacenterBrokerHeuristic;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSimple;
-import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
 import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared;
-import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
-import org.cloudbus.cloudsim.selectionpolicies.power.PowerVmSelectionPolicyMinimumUtilization;
 import org.cloudbus.cloudsim.util.Log;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelFull;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudbus.cloudsim.vms.VmSimple;
-import org.cloudsimplus.autoscaling.HorizontalVmScaling;
-import org.cloudsimplus.autoscaling.HorizontalVmScalingSimple;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
-import org.cloudsimplus.examples.ParallelSimulationsExample;
 import org.cloudsimplus.listeners.CloudletVmEventInfo;
-import org.cloudsimplus.listeners.EventInfo;
 import org.cloudsimplus.listeners.EventListener;
-import org.omg.CORBA.INTERNAL;
+import org.cloudsimplus.listeners.VmHostEventInfo;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,7 +50,7 @@ public class MigrationWithEnergy implements Runnable{
 
     private List<Host> hostList;
 
-    private final List<Vm> vmList = new ArrayList<>(VMS);
+    private final List<QosVm> vmList = new ArrayList<>(VMS);
 
     private final List<Cloudlet> cloudletList=new ArrayList<>(VMS);
 
@@ -83,16 +75,14 @@ public class MigrationWithEnergy implements Runnable{
 
         Datacenter datacenter0 = createDatacenter(allocationPolicy);
         datacenter0.setLog(true);
-        broker = new DatacenterBrokerSimple(simulation);
-
+//        broker = new DatacenterBrokerSimple(simulation);
+        broker=new DatacenterBrokerSimple(simulation);
 
         dynamicCreateVmsAndTasks(broker);
 
-//        simulation.terminateAt(80);
+//        simulation.terminateAt(74);
 
         time = simulation.start();
-
-
 
     }
 
@@ -109,7 +99,7 @@ public class MigrationWithEnergy implements Runnable{
         Log.printLine();
 
         Datacenter dc = new DatacenterSimple(simulation, hostList, allocationPolicy);
-        dc.setSchedulingInterval(SCHEDULE_INTERVAL).setLog(false);
+        dc.setSchedulingInterval(SCHEDULE_INTERVAL).setLog(true);
         return dc;
     }
 
@@ -140,8 +130,6 @@ public class MigrationWithEnergy implements Runnable{
 
 
 /*-----------------------------------------------打印----------------------------------------------------------*/
-
-
 
     public void print() {
         final List<Cloudlet> finishedList = broker.getCloudletFinishedList();
@@ -179,23 +167,23 @@ public class MigrationWithEnergy implements Runnable{
 
     private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
 
-        Vm vm=createVm(vmList.size(),broker,Constants.vmPes[index]);
+        QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index]);
 //        Vm vm=createVm(vmList.size(),broker,VM_PES);
         index++;
         vmList.add(vm);
         broker.submitVm(vm);
-
 
         UtilizationModelFull um = new UtilizationModelFull();
         Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
         cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
         cloudletList.add(cloudlet);
         broker.submitCloudlet(cloudlet);
+        broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
 
 
     }
-    public Vm createVm(int id,DatacenterBroker broker, int pes) {
-        Vm vm = new VmSimple(id,VM_MIPS, pes);
+    public QosVm createVm(int id,DatacenterBroker broker, int pes) {
+        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
@@ -208,13 +196,12 @@ public class MigrationWithEnergy implements Runnable{
 
         UtilizationModel utilizationModelFull = new UtilizationModelFull();
         final Cloudlet cloudlet =
-            new CloudletSimple(Constants.taskLength[taskIndex],vm.getNumberOfPes())
+            new QosCloudlet(Constants.taskLength[taskIndex],(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex])
                 .setFileSize(CLOUDLET_FILESIZE)
                 .setOutputSize(CLOUDLET_OUTPUTSIZE)
                 .setUtilizationModelCpu(cpuUtilizationModel)
                 .setUtilizationModelRam(utilizationModelFull)
                 .setUtilizationModelBw(utilizationModelFull);
-        broker.bindCloudletToVm(cloudlet, vm);
         taskIndex++;
         return cloudlet;
     }

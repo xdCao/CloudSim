@@ -129,6 +129,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
 
         final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);
         updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
+
         restoreAllocation();
         return migrationMap;
     }
@@ -139,7 +140,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @param overloadedHosts the List of over utilized hosts
      * @param migrationMap current migration map that will be updated
      */
-    private void updateMigrationMapFromUnderloadedHosts(
+    protected void updateMigrationMapFromUnderloadedHosts(
         final Set<Host> overloadedHosts,
         final Map<Vm, Host> migrationMap)
     {
@@ -211,7 +212,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      *
      * @param overloadedHosts the over utilized hosts
      */
-    private void printOverUtilizedHosts(final Set<Host> overloadedHosts) {
+    protected void printOverUtilizedHosts(final Set<Host> overloadedHosts) {
         if (!Log.isDisabled() && !overloadedHosts.isEmpty()) {
             Log.printFormattedLine("%.2f: PowerVmAllocationPolicy: Overloaded hosts in %s: %s",
                 getDatacenter().getSimulation().clock(), getDatacenter(),

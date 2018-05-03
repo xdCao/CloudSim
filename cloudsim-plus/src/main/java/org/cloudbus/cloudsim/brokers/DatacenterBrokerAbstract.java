@@ -960,6 +960,7 @@ public abstract class DatacenterBrokerAbstract extends CloudSimEntity implements
      *
      * @return
      */
+
     protected Set<Datacenter> getDatacenterRequestedList() {
         return datacenterRequestedList;
     }

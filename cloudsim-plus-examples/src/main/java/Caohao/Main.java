@@ -1,10 +1,14 @@
 package Caohao;
 
+import Caohao.MigrationPolicy.EnergyMigrationPolicy;
+import Caohao.MigrationPolicy.WorstFit;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicyFirstFit;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationMedianAbsoluteDeviation;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationStaticThreshold;
+import org.cloudbus.cloudsim.datacenters.Datacenter;
+import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
 import org.cloudbus.cloudsim.selectionpolicies.power.PowerVmSelectionPolicyMinimumUtilization;
 import org.cloudbus.cloudsim.util.Log;
 
@@ -12,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Caohao.Constants.HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION;
+import static Caohao.Constants.SCHEDULE_INTERVAL;
 
 /**
  * created by xdCao on 2018/4/26
@@ -21,10 +26,10 @@ public class Main {
 
 
     public static void main(String[] args) {
-        doParallel();
-
-//        doSingle1();
-
+//          doParallel();
+//
+        doSingle1();
+//
 //        doSingle2();
 
 
@@ -33,30 +38,17 @@ public class Main {
     public static void doSingle1() {
 
 
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy());
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new VmAllocationPolicySimple());
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
-
-
 
     }
 
     public static void doSingle2() {
 
-        final VmAllocationPolicyMigrationStaticThreshold fallback =
-            new VmAllocationPolicyMigrationStaticThreshold(
-                new PowerVmSelectionPolicyMinimumUtilization(), HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION);
-
-
-        VmAllocationPolicy allocationPolicy =
-            new VmAllocationPolicyMigrationMedianAbsoluteDeviation(
-                new PowerVmSelectionPolicyMinimumUtilization(),
-                HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION+0.2, fallback);
-
-//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(allocationPolicy);
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new VmAllocationPolicyFirstFit());
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit());
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
@@ -72,22 +64,12 @@ public class Main {
 
 
         simulationList.add(
-            new MigrationWithEnergy(new VmAllocationPolicySimple())
+            new MigrationWithEnergy(new EnergyMigrationPolicy())
         );
 
 
-//        final VmAllocationPolicyMigrationStaticThreshold fallback =
-//            new VmAllocationPolicyMigrationStaticThreshold(
-//                new PowerVmSelectionPolicyMinimumUtilization(), HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION);
-//
-//
-//        VmAllocationPolicy allocationPolicy =
-//            new VmAllocationPolicyMigrationMedianAbsoluteDeviation(
-//                new PowerVmSelectionPolicyMinimumUtilization(),
-//                HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION+0.2, fallback);
-
         simulationList.add(
-            new MigrationWithEnergy(new VmAllocationPolicyFirstFit())
+            new MigrationWithEnergy(new WorstFit())
         );
 
 

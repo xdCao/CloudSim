@@ -7,11 +7,9 @@ package Caohao;
 public class Constants {
 
     static final int SCHEDULE_INTERVAL = 1;
-    static final int Req_INTERVAL= 2 ;
 
-    static final int HOSTS = 5;
+    static final int HOSTS = 3;
     static final int VMS = 25;
-//    static final int TASKS=5;
 
     static final int    HOST_MIPS = 1000; //for each PE
 
@@ -23,7 +21,7 @@ public class Constants {
     static final int    VM_MIPS = 1000; //for each PE
     static final long   VM_SIZE = 1000; //image size (MB)
     static final int    VM_RAM = 10000; //VM memory (MB)
-    static final double VM_BW = HOST_BW/(double)VMS;
+    static final double VM_BW = HOST_BW/10;
     static final int    VM_PES = 7;
     static final int   CLOUDLET_LENGHT = 10000;
 
@@ -34,13 +32,28 @@ public class Constants {
     static final long   HOST_RAM = 5000000; //host memory (MB)
     static final long   HOST_STORAGE = 10000000; //host storage
 
-    static final double CLOUDLET_INITIAL_CPU_PERCENTAGE = 0.8;
 
-    static final double HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION = 0.7;
 
-    static final double CLOUDLET_CPU_INCREMENT_PER_SECOND = 0.1;
+    static final double HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION = 0.5;
 
-    public static int[] vmPes={ 1,3,4,7,6,
+
+
+    public static int[] vmPes={ 7,3,4,7,6,
+                                4,5,3,2,5,
+                                6,1,9,6,4,
+                                5,1,7,8,5,
+                                6,7,4,5,3,
+                                7,3,4,7,6,
+                                4,5,3,2,5,
+                                6,1,9,6,4,
+                                5,1,7,8,5,
+                                6,7,4,5,3,
+                                7,3,4,7,6,
+                                4,5,3,2,5,
+                                6,1,9,6,4,
+                                5,1,7,8,5,
+                                6,7,4,5,3,
+                                7,3,4,7,6,
                                 4,5,3,2,5,
                                 6,1,9,6,4,
                                 5,1,7,8,5,
@@ -50,7 +63,42 @@ public class Constants {
                                     15000,19000,11000,12000,16000,
                                     17000,15000,10000,17000,12000,
                                     18000,14000,12000,13000,15000,
+                                    18000,19000,10000,16000,18000,
+                                    12000,10000,11000,18000,16000,
+                                    15000,19000,11000,12000,16000,
+                                    17000,15000,10000,17000,12000,
+                                    18000,14000,12000,13000,15000,
+                                    18000,19000,10000,16000,18000,
+                                    12000,10000,11000,18000,16000,
+                                    15000,19000,11000,12000,16000,
+                                    17000,15000,10000,17000,12000,
+                                    18000,14000,12000,13000,15000,
+                                    18000,19000,10000,16000,18000,
+                                    12000,10000,11000,18000,16000,
+                                    15000,19000,11000,12000,16000,
+                                    17000,15000,10000,17000,12000,
+                                    18000,14000,12000,13000,15000,
                                     18000,19000,10000,16000,18000};//25个task的length
 
 
+    public static double[] taskQos={0.8,0.8,0.6,0.7,0.5,
+                                    0.9,0.8,0.5,0.6,0.7,
+                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.8,0.9,0.8,0.9,
+                                    0.7,0.8,0.9,0.6,0.8,
+                                    0.8,0.8,0.6,0.7,0.5,
+                                    0.7,0.8,0.5,0.6,0.7,
+                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.8,0.9,0.8,0.9,
+                                    0.7,0.8,0.9,0.6,0.8,
+                                    0.8,0.8,0.6,0.7,0.5,
+                                    0.7,0.8,0.5,0.6,0.7,
+                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.8,0.9,0.8,0.9,
+                                    0.7,0.8,0.9,0.6,0.8,
+                                    0.8,0.8,0.6,0.7,0.5,
+                                    0.7,0.8,0.5,0.6,0.7,
+                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.8,0.9,0.8,0.9,
+                                    0.7,0.8,0.9,0.6,0.8};
 }

@@ -122,6 +122,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
     @Override
     public void processEvent(final SimEvent ev) {
         int processed = 0;
+
         processed += processCloudletEvents(ev);
         processed += processVmEvents(ev);
         processed += processNetworkEvents(ev);
@@ -499,6 +500,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
         if (ackRequested) {
             send(vm.getBroker(), getSimulation().getMinTimeBetweenEvents(), CloudSimTags.VM_CREATE_ACK, vm);
         }
+
 
         if (hostAllocatedForVm) {
             if (!vm.isCreated()) {

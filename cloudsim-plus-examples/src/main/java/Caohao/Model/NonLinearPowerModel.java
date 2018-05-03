@@ -1,4 +1,4 @@
-package Caohao;
+package Caohao.Model;
 
 import org.cloudbus.cloudsim.power.models.PowerModelAbstract;
 import org.cloudbus.cloudsim.power.models.PowerModelSimple;
