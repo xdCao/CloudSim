@@ -9,7 +9,7 @@ public class Constants {
     static final int SCHEDULE_INTERVAL = 1;
 
     static final int HOSTS = 3;
-    static final int VMS = 25;
+    static final int VMS = 30;
 
     static final int    HOST_MIPS = 1000; //for each PE
 
@@ -81,7 +81,7 @@ public class Constants {
                                     18000,19000,10000,16000,18000};//25个task的length
 
 
-    public static double[] taskQos={0.8,0.8,0.6,0.7,0.5,
+    public static double[] taskQos={0.6,0.8,0.6,0.7,0.5,
                                     0.9,0.8,0.5,0.6,0.7,
                                     0.6,0.9,0.7,0.87,0.76,
                                     0.6,0.8,0.9,0.8,0.9,
