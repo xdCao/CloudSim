@@ -41,6 +41,14 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
                 .min(cpuUsageComparator);
             return (optional.isPresent() ? optional.get() : Vm.NULL);
         }
+
+        @Override
+        protected List<Vm> getMigratableVms(Host host) {
+            return host.<Vm>getVmList().stream()
+                .filter(vm -> !vm.isInMigration())
+                .filter(vm -> vm.getCloudletScheduler().getCloudletList().size()>0)
+                .collect(Collectors.toList());
+        }
     }
 
 
@@ -62,7 +70,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         List<Host> hostList = getHostList();
         Optional<Host> max = hostList.stream()
             .filter(e -> e.isSuitableForVm(vm))
-            .max(Comparator.comparingDouble(Host::getAvailableMips));
+            .min(Comparator.comparingDouble(Host::getAvailableMips));
         return max;
     }
 
@@ -71,19 +79,70 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         //@todo See https://github.com/manoelcampos/cloudsim-plus/issues/94
         final Set<Host> overloadedHosts = getOverloadedHosts();
         printOverUtilizedHosts(overloadedHosts);
-        saveAllocation();
+//        if (overloadedHosts.size()>0)
+//            saveAllocation();
         final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);
-        if(migrationMap.size()==0){
-            return migrationMap;
-        }else {
-            updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
-            restoreAllocation();
-            return migrationMap;
-        }
+        updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
+//        if (overloadedHosts.size()>0)
+////            restoreAllocation();
+        return migrationMap;
+
 
     }
 
 
+    /*找出要进行迁移的VM、PM对*/
+    @Override
+    protected Map<Vm, Host> getMigrationMapFromOverloadedHosts(Set<Host> overloadedHosts) {
+
+        final List<Vm> vmsToMigrate = getVmsToMigrateFromOverloadedHosts(overloadedHosts);
+        final Map<Vm, Host> migrationMap = new HashMap<>();
+        if(overloadedHosts.isEmpty()) {
+            return migrationMap;
+        }
+
+        Log.printLine("\tReallocation of VMs from overloaded hosts: ");
+        VmList.sortByCpuUtilization(vmsToMigrate, getDatacenter().getSimulation().clock());
+        for (final Vm vm : vmsToMigrate) {
+            findHostForVm(vm, overloadedHosts).ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
+        }
+        Log.printLine();
+
+        return migrationMap;
+
+    }
+
+    /*从过载主机中找出要进行迁移的vmlist*/
+    @Override
+    protected List<Vm> getVmsToMigrateFromOverloadedHosts(final Set<Host> overloadedHosts) {
+        final List<Vm> vmsToMigrate = new LinkedList<>();
+        for (final Host host : overloadedHosts) {
+            vmsToMigrate.addAll(getVmsToMigrateFromOverloadedHost(host));
+        }
+
+        return vmsToMigrate;
+    }
+
+    /*从某一台主机中获取要迁移的虚拟机列表*/
+    @Override
+    protected List<Vm> getVmsToMigrateFromOverloadedHost(final Host host) {
+        final List<Vm> vmsToMigrate = new LinkedList<>();
+        while (true) {
+            final Vm vm = getVmSelectionPolicy().getVmToMigrate(host);
+            if (Vm.NULL == vm) {
+                break;
+            }
+            vmsToMigrate.add(vm);
+            /*Temporarily destroys the selected VM into the overloaded Host so that
+            the loop gets VMs from such a Host until it is not overloaded anymore.*/
+            host.destroyTemporaryVm(vm);
+            if (!isHostOverloaded(host)) {
+                break;
+            }
+        }
+
+        return vmsToMigrate;
+    }
 
     /*---------------------------------------------------------------------------------------------------------------------*/
 

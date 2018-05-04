@@ -276,12 +276,15 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
 
     @Override
     public double getAvailableMips() {
+
+
         final double allocatedMips = allocatedMipsMap.entrySet()
                                                      .stream()
                                                      .mapToDouble(this::actualVmTotalRequestedMips)
                                                      .sum();
 
         return host.getTotalMipsCapacity() - allocatedMips;
+
     }
 
     /**
@@ -337,6 +340,8 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
      * @return the percentage of MIPS requested by the VM that will be in fact
      * requested to the Host (in scale from [0 to 1], where  is 100%)
      */
+    /*重点理解一下*/
+    // todo 这里可以利用虚拟机的迁移时间把迁移能耗、带宽之类的加上
     protected double percentOfMipsToRequest(final Vm vm) {
         if (host.getVmsMigratingIn().contains(vm)) {
             /* While the VM is migrating in,

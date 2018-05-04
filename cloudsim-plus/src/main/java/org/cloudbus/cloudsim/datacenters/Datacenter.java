@@ -41,7 +41,7 @@ public interface Datacenter extends SimEntity {
      * a value is not set.
      * @see #setBandwidthPercentForMigration(double)
      */
-    double DEF_BANDWIDTH_PERCENT_FOR_MIGRATION = 0.5;
+    double DEF_BANDWIDTH_PERCENT_FOR_MIGRATION = 1.0;
 
     /**
      * Adds a file into the resource's storage before the experiment starts. If

@@ -85,7 +85,8 @@ public class DatacenterBrokerSimple extends DatacenterBrokerAbstract {
 
         /*If user didn't bind this cloudlet to a specific Vm
         or if the bind VM was not created, try the next Vm on the list of created*/
-        return getVmFromCreatedList(getNextVmIndex());
+//        return getVmFromCreatedList(getNextVmIndex());
+        return Vm.NULL;
     }
 
     /**

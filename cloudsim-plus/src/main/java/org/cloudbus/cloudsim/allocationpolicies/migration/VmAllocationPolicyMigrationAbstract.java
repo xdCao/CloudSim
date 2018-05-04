@@ -127,8 +127,8 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         printOverUtilizedHosts(overloadedHosts);
         saveAllocation();
 
-        final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);
-        updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
+        final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);//PM过载迁移
+        updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);//PM负载过轻迁移
 
         restoreAllocation();
         return migrationMap;
@@ -140,6 +140,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @param overloadedHosts the List of over utilized hosts
      * @param migrationMap current migration map that will be updated
      */
+    /*在已经生成的迁移VM-PM对的基础上增加由于物理机负载过轻带来的虚拟机迁移*/
     protected void updateMigrationMapFromUnderloadedHosts(
         final Set<Host> overloadedHosts,
         final Map<Vm, Host> migrationMap)
@@ -147,6 +148,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         final List<Host> switchedOffHosts = getSwitchedOffHosts();
 
         // over-utilized hosts + hosts that are selected to migrate VMs to from over-utilized hosts
+        /*将需要进行迁移的物理主机（目的主机）和已经过载（不满足算法条件）的物理主机排除在外*/
         final Set<Host> excludedHostsFromUnderloadSearch = new HashSet<>();
         excludedHostsFromUnderloadSearch.addAll(overloadedHosts);
         excludedHostsFromUnderloadSearch.addAll(switchedOffHosts);
@@ -405,7 +407,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         return migrationMap;
     }
 
-    private <T extends Host> void addVmToMigrationMap(final Map<Vm, T> migrationMap, final Vm vm, final T targetHost, final String msg) {
+    protected <T extends Host> void addVmToMigrationMap(final Map<Vm, T> migrationMap, final Vm vm, final T targetHost, final String msg) {
         /*
         Temporarily creates the VM into the target Host so that
         when the next VM is got to be migrated, if the same Host
@@ -433,7 +435,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         return vmsToMigrate;
     }
 
-    private List<Vm> getVmsToMigrateFromOverloadedHost(final Host host) {
+    protected List<Vm> getVmsToMigrateFromOverloadedHost(final Host host) {
         final List<Vm> vmsToMigrate = new LinkedList<>();
         while (true) {
             final Vm vm = getVmSelectionPolicy().getVmToMigrate(host);

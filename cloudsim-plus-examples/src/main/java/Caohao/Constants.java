@@ -9,7 +9,7 @@ public class Constants {
     static final int SCHEDULE_INTERVAL = 1;
 
     static final int HOSTS = 3;
-    static final int VMS = 30;
+    static final int VMS = 50;
 
     static final int    HOST_MIPS = 1000; //for each PE
 
@@ -32,9 +32,6 @@ public class Constants {
     static final long   HOST_RAM = 5000000; //host memory (MB)
     static final long   HOST_STORAGE = 10000000; //host storage
 
-
-
-    static final double HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION = 0.5;
 
 
 

@@ -152,6 +152,7 @@ public class CloudletsTableBuilder {
 
         col = table.addColumn("ExecTime", SECONDS).setFormat(TIME_FORMAT);
         columnsDataFunctions.put(col, c -> (long)Math.ceil(c.getActualCpuTime()));
+
     }
 
     /**

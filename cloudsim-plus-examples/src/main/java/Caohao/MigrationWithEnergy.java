@@ -56,6 +56,8 @@ public class MigrationWithEnergy implements Runnable{
 
     private DatacenterBroker broker;
 
+    private Datacenter dc;
+
     private double time;
 
     private int index=0;
@@ -98,7 +100,7 @@ public class MigrationWithEnergy implements Runnable{
         }
         Log.printLine();
 
-        Datacenter dc = new DatacenterSimple(simulation, hostList, allocationPolicy);
+        dc = new DatacenterSimple(simulation, hostList, allocationPolicy);
         dc.setSchedulingInterval(SCHEDULE_INTERVAL).setLog(true);
         return dc;
     }
@@ -110,7 +112,7 @@ public class MigrationWithEnergy implements Runnable{
         host
             .setRamProvisioner(new ResourceProvisionerSimple())
             .setBwProvisioner(new ResourceProvisionerSimple())
-            .setVmScheduler(new VmSchedulerTimeShared(0));
+            .setVmScheduler(new VmSchedulerTimeShared(0.99999999));
         host.enableStateHistory();
 
 
@@ -138,6 +140,9 @@ public class MigrationWithEnergy implements Runnable{
                 .thenComparingInt(c -> c.getVm().getId()));
         new CloudletsTableBuilder(cloudletList).build();
 
+        printCloudletTime();
+
+
         System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
 
         for (Host host:hostList){
@@ -146,10 +151,19 @@ public class MigrationWithEnergy implements Runnable{
 
         PrintHelper.printEnergy(hostList);
 
+
+
         Log.printConcatLine( "finished!");
     }
 
-/*--------------------------------------------------------------------------------动态请求----------------------*/
+    public void printCloudletTime() {
+        System.out.println("---------------------cloudlet cpuTime--------------------");
+        for (Cloudlet cloudlet:cloudletList){
+            System.out.printf("%2d|%6.2f|%6.2f|%6d\n",cloudlet.getId(),cloudlet.getActualCpuTime(),cloudlet.getWallClockTime(dc),cloudlet.getLength());
+        }
+    }
+
+    /*--------------------------------------------------------------------------------动态请求----------------------*/
 
     private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
 
@@ -183,7 +197,7 @@ public class MigrationWithEnergy implements Runnable{
 
     }
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
-        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]);
+        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]-0.2);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
