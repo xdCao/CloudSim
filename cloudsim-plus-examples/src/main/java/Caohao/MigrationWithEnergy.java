@@ -1,5 +1,6 @@
 package Caohao;
 
+import Caohao.MigrationPolicy.EnergyMigrationPolicy;
 import Caohao.Model.NonLinearPowerModel;
 import Caohao.entity.QosCloudlet;
 import Caohao.entity.QosVm;
@@ -13,8 +14,10 @@ import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSimple;
+import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
+
 import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared;
@@ -24,11 +27,11 @@ import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelFull;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudbus.cloudsim.vms.VmSimple;
+import org.cloudbus.cloudsim.vms.VmStateHistoryEntry;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
-import org.cloudsimplus.listeners.CloudletVmEventInfo;
-import org.cloudsimplus.listeners.EventListener;
-import org.cloudsimplus.listeners.VmHostEventInfo;
+import org.cloudsimplus.listeners.*;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -64,6 +67,13 @@ public class MigrationWithEnergy implements Runnable{
 
     private int taskIndex=0;
 
+    public File file;
+
+    FileWriter fw = null;
+    BufferedWriter bw = null;
+    PrintWriter pw = null;
+
+
     MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
         this.allocationPolicy=allocationPolicy;
     }
@@ -72,13 +82,44 @@ public class MigrationWithEnergy implements Runnable{
     @Override
     public void run() {
 
+        file=new File("log.txt");
+
+
+
+        try {
+            fw = new FileWriter(file, true);
+            bw = new BufferedWriter(fw);
+            pw = new PrintWriter(bw);
+        } catch (IOException e) {
+            System.exit(0);
+        }
+
         simulation = new CloudSim();
+
+        simulation.addOnClockTickListener(new EventListener<EventInfo>() {
+            @Override
+            public void update(EventInfo info) {
+                pw.printf("time: %6.2f\n",info.getTime());
+                for (Host host:hostList){
+                    pw.println();
+                    pw.printf("Host%3d: %6.2f\n",host.getId(),EnergyMigrationPolicy.getHostCpuUtilizationPercentage(host));
+                    List<QosVm> vmList = host.getVmList();
+                    for (QosVm vm:vmList){
+                        pw.printf("vm%3d: %6.2f  %2d  isInMigration: "+vm.isInMigration()+"\n",vm.getId(),vm.getQos(),vm.getNumberOfPes());
+                    }
+                }
+                pw.println();
+                pw.println();
+            }
+        });
 
 
         Datacenter datacenter0 = createDatacenter(allocationPolicy);
         datacenter0.setLog(true);
+
 //        broker = new DatacenterBrokerSimple(simulation);
         broker=new DatacenterBrokerSimple(simulation);
+
 
         dynamicCreateVmsAndTasks(broker);
 
@@ -86,10 +127,19 @@ public class MigrationWithEnergy implements Runnable{
 
         time = simulation.start();
 
+        try {
+            pw.close();
+            bw.close();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
     }
 
-
-/*---------------------------------------------初始化底层网络----------------------------------------------------*/
+    /*---------------------------------------------初始化底层网络----------------------------------------------------*/
 
     private Datacenter createDatacenter(VmAllocationPolicy allocationPolicy) {
         this.hostList = new ArrayList<>();
@@ -142,7 +192,6 @@ public class MigrationWithEnergy implements Runnable{
 
         printCloudletTime();
 
-
         System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
 
         for (Host host:hostList){
@@ -151,10 +200,10 @@ public class MigrationWithEnergy implements Runnable{
 
         PrintHelper.printEnergy(hostList);
 
-
-
         Log.printConcatLine( "finished!");
     }
+
+
 
     public void printCloudletTime() {
         System.out.println("---------------------cloudlet cpuTime--------------------");

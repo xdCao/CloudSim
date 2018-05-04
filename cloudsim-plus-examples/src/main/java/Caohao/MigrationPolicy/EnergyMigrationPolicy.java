@@ -26,6 +26,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
 
     static class MyVmSelection extends PowerVmSelectionPolicy{
+
+        // todo 这里是选择要迁移的虚拟机的算法
         @Override
         public Vm getVmToMigrate(Host host) {
             final List<? extends Vm> migratableVms = getMigratableVms(host);
@@ -65,6 +67,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         super(vmSelectionPolicy);
     }
 
+    // todo 这里是找目的主机的算法
     @Override
     public Optional<Host> findHostForVm(Vm vm) {
         List<Host> hostList = getHostList();
@@ -91,6 +94,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     }
 
 
+    //todo
     /*找出要进行迁移的VM、PM对*/
     @Override
     protected Map<Vm, Host> getMigrationMapFromOverloadedHosts(Set<Host> overloadedHosts) {
@@ -144,22 +148,67 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         return vmsToMigrate;
     }
 
+    @Override
+    protected List<? extends Vm> getVmsToMigrateFromUnderUtilizedHost(Host host) {
+        return host.getVmList().stream()
+            .filter(vm -> !vm.isInMigration())
+            .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    @Override
+    protected Map<Vm, Host> getNewVmPlacementFromUnderloadedHost(List<? extends Vm> vmsToMigrate, Set<? extends Host> excludedHosts) {
+        final Map<Vm, Host> migrationMap = new HashMap<>();
+        VmList.sortByCpuUtilization(vmsToMigrate, getDatacenter().getSimulation().clock());
+        for (final Vm vm : vmsToMigrate) {
+            //try to find a target Host to place a VM from an underloaded Host that is not underloaded too
+            final Optional<Host> optional = findHostForVm(vm, excludedHosts, host -> !isHostUnderloadedAfterAllocation(host,vm));
+            if (!optional.isPresent()) {
+                Log.printFormattedLine("\tA new Host, which isn't also underloaded or won't be overloaded, couldn't be found to migrate %s.", vm);
+                Log.printFormattedLine("\tMigration of VMs from the underloaded %s cancelled.", vm.getHost());
+                return new HashMap<>();
+            }
+            addVmToMigrationMap(migrationMap, vm, optional.get(), "\t%s will be allocated to %s");
+        }
+
+        return migrationMap;
+    }
+
+    private boolean isHostUnderloadedAfterAllocation(Host host, Vm vm) {
+
+        if (host.createTemporaryVm(vm)) {
+            boolean isHostUnderLoadedAfterAlloca = isHostUnderloaded(host);
+            host.destroyTemporaryVm(vm);
+            return isHostUnderLoadedAfterAlloca;
+        }else {
+            return false;
+        }
+
+    }
+
+
     /*---------------------------------------------------------------------------------------------------------------------*/
 
     //设置过载门限
     @Override
     public double getOverUtilizationThreshold(Host host) {
         List<QosVm> vmList = host.getVmList();
-        Optional<Double> aDouble = vmList.stream().max(Comparator.comparingDouble(QosVm::getQos)).map(QosVm::getQos);
+        Optional<Double> aDouble = vmList.stream().min(Comparator.comparingDouble(QosVm::getQos)).map(QosVm::getQos);
         return aDouble.orElse(1.0);
     }
 
     //空闲门限
     @Override
     public boolean isHostUnderloaded(Host host) {
-        return getHostCpuUtilizationPercentage(host)<0;
+        Optional<Double> aDouble = host.getVmList().stream().filter(vm -> !vm.isInMigration()).max(Comparator.comparingDouble(Vm::getCurrentRequestedTotalMips)).map(vm -> vm.getCurrentRequestedTotalMips());
+        if (aDouble.isPresent()){
+            return (getHostTotalRequestedMips(host)-aDouble.get())<0.125;
+        }else {
+            return false;
+        }
+//        return getHostCpuUtilizationPercentage(host)<0.125;
     }
 
+    //过载门限
     @Override
     public boolean isHostOverloaded(Host host) {
         double upperThreshold = getOverUtilizationThreshold(host);
@@ -169,11 +218,11 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     }
 
 
-    private double getHostCpuUtilizationPercentage(final Host host) {
+    public static double getHostCpuUtilizationPercentage(final Host host) {
         return getHostTotalRequestedMips(host) / host.getTotalMipsCapacity();
     }
 
-    private double getHostTotalRequestedMips(final Host host) {
+    public static double getHostTotalRequestedMips(final Host host) {
         return host.getVmList().stream()
             .mapToDouble(Vm::getCurrentRequestedTotalMips)
             .sum();

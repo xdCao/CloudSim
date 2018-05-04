@@ -343,21 +343,26 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
     /*重点理解一下*/
     // todo 这里可以利用虚拟机的迁移时间把迁移能耗、带宽之类的加上
     protected double percentOfMipsToRequest(final Vm vm) {
-        if (host.getVmsMigratingIn().contains(vm)) {
-            /* While the VM is migrating in,
-            the destination host only increases CPU usage according
-            to the CPU migration overhead.
-             */
-            return vmMigrationCpuOverhead;
-        }
-
-        if (host.getVmsMigratingOut().contains(vm)) {
-            /* While the VM is migrating out, the host where it's migrating from
-            experiences a performance degradation.
-            Thus, the allocated MIPS for that VM is reduced according to the CPU migration
-            overhead.*/
-            return getMaxCpuUsagePercentDuringOutMigration();
-        }
+//        if (host.getVmsMigratingIn().contains(vm)) {
+//            /* While the VM is migrating in,
+//            the destination host only increases CPU usage according
+//            to the CPU migration overhead.
+//            当虚拟机迁移时，目的pm的cpu会按一定的比例升高分配给这个vm
+//             */
+//            return vmMigrationCpuOverhead;
+//        }
+//
+//
+//
+//        if (host.getVmsMigratingOut().contains(vm)) {
+//            /* While the VM is migrating out, the host where it's migrating from
+//            experiences a performance degradation.
+//            Thus, the allocated MIPS for that VM is reduced according to the CPU migration
+//            overhead.
+//            当虚拟机迁移时，源主机的cpu会降低，比例为1-overhead
+//            */
+//            return getMaxCpuUsagePercentDuringOutMigration();
+//        }
 
         //VM is not migrating, thus 100% of its requested MIPS will be requested to the Host.
         return 1;

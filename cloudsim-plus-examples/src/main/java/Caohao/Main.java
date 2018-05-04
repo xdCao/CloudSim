@@ -15,7 +15,6 @@ import org.cloudbus.cloudsim.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import static Caohao.Constants.HOST_UTILIZATION_THRESHOLD_FOR_VM_MIGRATION;
 import static Caohao.Constants.SCHEDULE_INTERVAL;
 
 /**
