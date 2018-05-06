@@ -37,7 +37,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
+import static Caohao.CalHelper.getHostCpuUtilizationPercentage;
+import static Caohao.CalHelper.isHostOverloaded;
+import static Caohao.CalHelper.isHostUnderloaded;
 import static Caohao.Constants.*;
+import static Caohao.MigrationPolicy.EnergyMigrationPolicy.getMyOverUtilizationThreshold;
 
 /**
  * created by xdCao on 2018/4/24
@@ -102,7 +106,15 @@ public class MigrationWithEnergy implements Runnable{
                 pw.printf("time: %6.2f\n",info.getTime());
                 for (Host host:hostList){
                     pw.println();
-                    pw.printf("Host%3d: %6.2f\n",host.getId(),EnergyMigrationPolicy.getHostCpuUtilizationPercentage(host));
+                    pw.printf("Host%3d: %6.2f",host.getId(), getHostCpuUtilizationPercentage(host));
+                    if (isHostOverloaded(host)){
+                        pw.printf("                                             overloaded\n");
+                    }else if(isHostUnderloaded(host)){
+                        pw.printf("                                             underloaded\n");
+                    }else {
+                        pw.printf("\n");
+                    }
+
                     List<QosVm> vmList = host.getVmList();
                     for (QosVm vm:vmList){
                         pw.printf("vm%3d: %6.2f  %2d  isInMigration: "+vm.isInMigration()+"\n",vm.getId(),vm.getQos(),vm.getNumberOfPes());
@@ -138,6 +150,8 @@ public class MigrationWithEnergy implements Runnable{
 
 
     }
+
+
 
     /*---------------------------------------------初始化底层网络----------------------------------------------------*/
 
@@ -190,13 +204,13 @@ public class MigrationWithEnergy implements Runnable{
                 .thenComparingInt(c -> c.getVm().getId()));
         new CloudletsTableBuilder(cloudletList).build();
 
-        printCloudletTime();
+//        printCloudletTime();
 
         System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
 
-        for (Host host:hostList){
-            PrintHelper.printHistory(host);
-        }
+//        for (Host host:hostList){
+//            PrintHelper.printHistory(host);
+//        }
 
         PrintHelper.printEnergy(hostList);
 
@@ -246,7 +260,7 @@ public class MigrationWithEnergy implements Runnable{
 
     }
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
-        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]-0.2);
+        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());

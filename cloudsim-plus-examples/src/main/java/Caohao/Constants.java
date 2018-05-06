@@ -8,14 +8,14 @@ public class Constants {
 
     static final int SCHEDULE_INTERVAL = 1;
 
-    static final int HOSTS = 3;
-    static final int VMS = 30;
+    static final int HOSTS = 10;
+    static final int VMS = 50;
 
     static final int    HOST_MIPS = 1000; //for each PE
 
     static final int    HOST_INITIAL_PES = 32;
 
-    static final long   HOST_BW = 160000L; //Mb/s
+    static final long   HOST_BW = 1600000L; //Mb/s
 
 
     static final int    VM_MIPS = 1000; //for each PE
@@ -80,22 +80,22 @@ public class Constants {
 
     public static double[] taskQos={0.6,0.8,0.6,0.7,0.5,
                                     0.9,0.8,0.5,0.6,0.7,
-                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.9,0.7,0.8,0.7,
                                     0.6,0.8,0.9,0.8,0.9,
                                     0.7,0.8,0.9,0.6,0.8,
                                     0.8,0.8,0.6,0.7,0.5,
                                     0.7,0.8,0.5,0.6,0.7,
-                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.9,0.7,0.8,0.7,
                                     0.6,0.8,0.9,0.8,0.9,
                                     0.7,0.8,0.9,0.6,0.8,
                                     0.8,0.8,0.6,0.7,0.5,
                                     0.7,0.8,0.5,0.6,0.7,
-                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.9,0.7,0.8,0.7,
                                     0.6,0.8,0.9,0.8,0.9,
                                     0.7,0.8,0.9,0.6,0.8,
                                     0.8,0.8,0.6,0.7,0.5,
                                     0.7,0.8,0.5,0.6,0.7,
-                                    0.6,0.9,0.7,0.87,0.76,
+                                    0.6,0.9,0.7,0.8,0.7,
                                     0.6,0.8,0.9,0.8,0.9,
                                     0.7,0.8,0.9,0.6,0.8};
 }

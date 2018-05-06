@@ -199,6 +199,9 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
                 migrationMap.putAll(newVmPlacement);
                 Log.printLine();
             }
+
+
+
         }
     }
 
