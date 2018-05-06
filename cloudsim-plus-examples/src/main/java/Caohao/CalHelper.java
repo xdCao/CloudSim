@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import static Caohao.Constants.VAR_THRESHOLD;
 import static Caohao.MigrationPolicy.EnergyMigrationPolicy.getMyOverUtilizationThreshold;
 
 /**
@@ -82,8 +83,7 @@ public class CalHelper {
     public static boolean isHostOverloaded(Host host) {
         double upperThreshold = getMyOverUtilizationThreshold(host);
         double var = calDistribution(host);
-        return getHostCpuUtilizationPercentage(host) > upperThreshold||var>0;
-
+        return getHostCpuUtilizationPercentage(host) > upperThreshold||var>VAR_THRESHOLD;
     }
 
 
@@ -122,6 +122,7 @@ public class CalHelper {
     }
 
 
-
-
+    public static double getHostCpuUtilizationPercentageNext(Host host,Vm vm) {
+        return (getHostTotalAllocatedMips(host)+vm.getCurrentRequestedTotalMips()) / host.getTotalMipsCapacity();
+    }
 }

@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 
 import static Caohao.CalHelper.calAvaQos;
 import static Caohao.CalHelper.calDistribution;
+import static Caohao.CalHelper.calDistributionNext;
+import static Caohao.Constants.VAR_THRESHOLD;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -133,13 +135,23 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         for (final Vm vm : vmsToMigrate) {
             /*这里是找迁移目的主机的过程*/
             Log.print("vm"+vm.getId()+" ");
-            findHostForVm(vm, overloadedHosts).ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
+//            findHostForVm(vm, overloadedHosts).ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
+            findHostForVm(vm, overloadedHosts,host -> !isHostUnderloadedAfterAllocation(host,vm))
+                .ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
+
         }
         Log.printLine();
 
         return migrationMap;
 
     }
+
+
+    @Override
+    public Optional<Host> findHostForVm(final Vm vm, final Set<? extends Host> excludedHosts) {
+        return findHostForVm(vm, excludedHosts, host -> true);
+    }
+
 
     /*从过载主机中找出要进行迁移的vmlist*/
     protected List<QosVm> getQosVmsToMigrateFromOverloadedHosts(final Set<Host> overloadedHosts) {
@@ -216,8 +228,12 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 //        return !isHostOverUsedAfterAllocation;
 
         //todo 这里
+        double upperThreshold = getOverUtilizationThreshold(host);
+        double nextUpperHold=upperThreshold<((QosVm)vm).getQos()?upperThreshold:((QosVm)vm).getQos();
+        double var = calDistributionNext(host,(QosVm) vm);
 
-        return true;
+        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=VAR_THRESHOLD);
+
     }
 
     @Override
@@ -295,7 +311,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
         double var = calDistribution(host);
 
-        return CalHelper.getHostCpuUtilizationPercentage(host) > upperThreshold||var>0;
+        return CalHelper.getHostCpuUtilizationPercentage(host)>upperThreshold||var>VAR_THRESHOLD;
 
     }
 
