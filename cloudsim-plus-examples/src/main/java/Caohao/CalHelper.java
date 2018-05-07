@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static Caohao.Constants.VAR_THRESHOLD;
-import static Caohao.MigrationPolicy.EnergyMigrationPolicy.getMyOverUtilizationThreshold;
+
 
 /**
  * created by xdCao on 2018/5/6
@@ -84,6 +84,12 @@ public class CalHelper {
         double upperThreshold = getMyOverUtilizationThreshold(host);
         double var = calDistribution(host);
         return getHostCpuUtilizationPercentage(host) > upperThreshold||var>VAR_THRESHOLD;
+    }
+
+    public static double getMyOverUtilizationThreshold(Host host) {
+        List<QosVm> vmList = host.getVmList();
+        Optional<Double> aDouble = vmList.stream().min(Comparator.comparingDouble(QosVm::getQos)).map(QosVm::getQos);
+        return aDouble.orElse(1.0);
     }
 
 

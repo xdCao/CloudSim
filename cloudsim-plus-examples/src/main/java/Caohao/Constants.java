@@ -6,7 +6,7 @@ package Caohao;
 
 public class Constants {
 
-    public static final double VAR_THRESHOLD=0.005;
+    public static final double VAR_THRESHOLD=0.0025;
 
     static final int SCHEDULE_INTERVAL = 1;
 

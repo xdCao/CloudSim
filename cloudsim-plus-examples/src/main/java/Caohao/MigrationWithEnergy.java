@@ -108,7 +108,7 @@ public class MigrationWithEnergy implements Runnable{
                     pw.println();
                     pw.printf("Host%3d: %6.2f",host.getId(), getHostCpuUtilizationPercentage(host));
                     if (isHostOverloaded(host)){
-                        pw.printf("                                             overloaded\n");
+                        pw.printf("                              overloaded\n");
                     }else if(isHostUnderloaded(host)){
                         pw.printf("                                             underloaded\n");
                     }else {
@@ -244,7 +244,8 @@ public class MigrationWithEnergy implements Runnable{
 
     private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
 
-        QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index]);
+        // todo 这里取模
+        QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
 //        Vm vm=createVm(vmList.size(),broker,VM_PES);
         index++;
         vmList.add(vm);
@@ -260,7 +261,8 @@ public class MigrationWithEnergy implements Runnable{
 
     }
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
-        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index]);
+        // todo 这里取模
+        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
@@ -273,7 +275,8 @@ public class MigrationWithEnergy implements Runnable{
 
         UtilizationModel utilizationModelFull = new UtilizationModelFull();
         final Cloudlet cloudlet =
-            new QosCloudlet(Constants.taskLength[taskIndex],(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex])
+            // todo 这里取模
+            new QosCloudlet(Constants.taskLength[taskIndex%100],(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex%100])
                 .setFileSize(CLOUDLET_FILESIZE)
                 .setOutputSize(CLOUDLET_OUTPUTSIZE)
                 .setUtilizationModelCpu(cpuUtilizationModel)
