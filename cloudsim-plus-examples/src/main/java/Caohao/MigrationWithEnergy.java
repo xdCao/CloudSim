@@ -88,8 +88,9 @@ public class MigrationWithEnergy implements Runnable{
     PrintWriter pw1 = null;
 
 
-    MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
+    MigrationWithEnergy(VmAllocationPolicy allocationPolicy,String fileName){
         this.allocationPolicy=allocationPolicy;
+        share=new File(fileName);
     }
 
 
@@ -97,8 +98,6 @@ public class MigrationWithEnergy implements Runnable{
     public void run() {
 
         file=new File("log.txt");
-
-        share=new File("E://share.txt");
 
         try {
             fw = new FileWriter(file, false);
@@ -248,9 +247,9 @@ public class MigrationWithEnergy implements Runnable{
 
         System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
 
-        for (Host host:hostList){
-            PrintHelper.printHistory(host);
-        }
+//        for (Host host:hostList){
+//            PrintHelper.printHistory(host);
+//        }
 
         PrintHelper.printEnergy(hostList);
 

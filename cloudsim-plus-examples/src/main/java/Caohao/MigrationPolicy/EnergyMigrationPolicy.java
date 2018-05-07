@@ -81,7 +81,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         Optional<Host> max = hostList.stream()
             .filter(e -> e.isSuitableForVm(vm))
             .filter(e->isNotHostOverloadedAfterAllocationWithOutQos(e,vm))
-            .max(Comparator.comparingDouble(Host::getAvailableMips));
+            .min(Comparator.comparingDouble(Host::getAvailableMips));
         return max;
     }
 
@@ -119,7 +119,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         for (final Vm vm : vmsToMigrate) {
             /*这里是找迁移目的主机的过程*/
             Log.print("vm"+vm.getId()+" ");
-            findHostForVm(vm, overloadedHosts,host -> !isHostUnderloadedAfterAllocation(host,vm))
+//            findHostForVm(vm, overloadedHosts,host -> checkForVmFromOverLoaded(host,vm))
+            findHostForVm(vm, overloadedHosts,host -> checkForVmFromOverLoaded(host,vm))
                 .ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
 
         }
@@ -127,6 +128,10 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
         return migrationMap;
 
+    }
+
+    private boolean checkForVmFromOverLoaded(Host host, Vm vm) {
+        return true;
     }
 
     /*从过载主机中找出要进行迁移的vmlist*/
