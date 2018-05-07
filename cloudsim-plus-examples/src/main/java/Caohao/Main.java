@@ -2,6 +2,8 @@ package Caohao;
 
 import Caohao.MigrationPolicy.EnergyMigrationPolicy;
 import Caohao.MigrationPolicy.WorstFit;
+import Caohao.Model.EnergyTimeStamp;
+import Caohao.Model.PowerTimeStamp;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicyFirstFit;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
@@ -14,6 +16,7 @@ import org.cloudbus.cloudsim.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static Caohao.Constants.SCHEDULE_INTERVAL;
 
@@ -51,6 +54,12 @@ public class Main {
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
+
+
+
+
+
+
 
 
     }

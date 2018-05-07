@@ -4,7 +4,10 @@ import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.util.Log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static Caohao.Constants.HOST_INITIAL_PES;
 import static Caohao.Constants.HOST_MIPS;
@@ -22,7 +25,7 @@ public class PrintHelper {
         double energy=0;
         System.out.println("-------------------------------------------------------------------------------------------");
         for (Host host:hostList){
-            double hostEne= getHostHistoryEnergy(host);
+            double hostEne= getHostEnergy(host);
             System.out.printf("Host: %6d | Energy: %6.2f|\n",host.getId(), hostEne);
             System.out.println("-------------------------------------------------------------------------------------------");
             energy+=hostEne;
@@ -33,7 +36,8 @@ public class PrintHelper {
 
     }
 
-    public static double getHostHistoryEnergy(Host host) {
+
+    public static double getHostEnergy(Host host) {
 
         double energy=0;
 
@@ -53,6 +57,7 @@ public class PrintHelper {
 
     }
 
+
     public static void printHistory(Host host){
         if(printHostStateHistory(host)) {
             printHostCpuUsageAndPowerConsumption(host);
@@ -62,7 +67,7 @@ public class PrintHelper {
 
     public static boolean printHostStateHistory(Host host) {
         if(host.getStateHistory().stream().anyMatch(HostStateHistoryEntry::isActive)) {
-            System.out.printf("\nHost: %6d State getHostHistoryEnergy\n", host.getId());
+            System.out.printf("\nHost: %6d State getHostEnergy\n", host.getId());
             System.out.println("-------------------------------------------------------------------------------------------");
             host.getStateHistory().forEach(System.out::print);
             System.out.println();

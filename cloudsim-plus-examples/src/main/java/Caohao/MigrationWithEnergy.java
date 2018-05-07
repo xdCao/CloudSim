@@ -1,7 +1,9 @@
 package Caohao;
 
 import Caohao.MigrationPolicy.EnergyMigrationPolicy;
+import Caohao.Model.EnergyTimeStamp;
 import Caohao.Model.NonLinearPowerModel;
+import Caohao.Model.PowerTimeStamp;
 import Caohao.entity.QosCloudlet;
 import Caohao.entity.QosVm;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
@@ -30,18 +32,16 @@ import org.cloudbus.cloudsim.vms.VmSimple;
 import org.cloudbus.cloudsim.vms.VmStateHistoryEntry;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.listeners.*;
+import org.cloudsimplus.listeners.EventListener;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static Caohao.CalHelper.getHostCpuUtilizationPercentage;
 import static Caohao.CalHelper.isHostOverloaded;
 import static Caohao.CalHelper.isHostUnderloaded;
 import static Caohao.Constants.*;
-import static Caohao.MigrationPolicy.EnergyMigrationPolicy.getMyOverUtilizationThreshold;
+
 
 /**
  * created by xdCao on 2018/4/24
@@ -73,9 +73,19 @@ public class MigrationWithEnergy implements Runnable{
 
     public File file;
 
+    public List<PowerTimeStamp> timePowerMap=new ArrayList<>();
+
+    public File share;
+
+
     FileWriter fw = null;
     BufferedWriter bw = null;
     PrintWriter pw = null;
+
+
+    FileWriter fw1 = null;
+    BufferedWriter bw1 = null;
+    PrintWriter pw1 = null;
 
 
     MigrationWithEnergy(VmAllocationPolicy allocationPolicy){
@@ -88,12 +98,16 @@ public class MigrationWithEnergy implements Runnable{
 
         file=new File("log.txt");
 
-
+        share=new File("E://share.txt");
 
         try {
-            fw = new FileWriter(file, true);
+            fw = new FileWriter(file, false);
             bw = new BufferedWriter(fw);
             pw = new PrintWriter(bw);
+
+            fw1 = new FileWriter(share, false);
+            bw1 = new BufferedWriter(fw1);
+            pw1 = new PrintWriter(bw1);
         } catch (IOException e) {
             System.exit(0);
         }
@@ -122,12 +136,16 @@ public class MigrationWithEnergy implements Runnable{
                 }
                 pw.println();
                 pw.println();
+
+                timePowerMap.add(new PowerTimeStamp(info.getTime(),dc.getPower()));
+
             }
         });
 
 
-        Datacenter datacenter0 = createDatacenter(allocationPolicy);
-        datacenter0.setLog(true);
+        dc = createDatacenter(allocationPolicy);
+        dc.setLog(true);
+
 
 //        broker = new DatacenterBrokerSimple(simulation);
         broker=new DatacenterBrokerSimple(simulation);
@@ -139,10 +157,32 @@ public class MigrationWithEnergy implements Runnable{
 
         time = simulation.start();
 
+        List<EnergyTimeStamp> timeEnergyMap = DrawHelper.getTimeEnergyMap(timePowerMap);
+        for (int i = 0; i < timeEnergyMap.size(); i++) {
+            pw1.printf("%15.2f %15.2f",timeEnergyMap.get(i).getTime(),timeEnergyMap.get(i).getEnergy());
+            pw1.println();
+        }
+
+//        pw.println();pw.println();
+//
+//        for (int i = 0; i < timeEnergyMap.size(); i++) {
+//            pw.printf("%15.2f,",timeEnergyMap.get(i).getTime());
+//        }
+//        pw.println();
+//        for (int i = 0; i < timeEnergyMap.size(); i++) {
+//            pw.printf("%15.2f,",timeEnergyMap.get(i).getEnergy());
+//        }
+
+
         try {
             pw.close();
             bw.close();
             fw.close();
+
+
+            pw1.close();
+            bw1.close();
+            fw1.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -208,11 +248,12 @@ public class MigrationWithEnergy implements Runnable{
 
         System.out.println("\n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)\n");
 
-//        for (Host host:hostList){
-//            PrintHelper.printHistory(host);
-//        }
+        for (Host host:hostList){
+            PrintHelper.printHistory(host);
+        }
 
         PrintHelper.printEnergy(hostList);
+
 
         Log.printConcatLine( "finished!");
     }
@@ -297,4 +338,7 @@ public class MigrationWithEnergy implements Runnable{
         return time;
     }
 
+    public List<PowerTimeStamp> getTimePowerMap() {
+        return timePowerMap;
+    }
 }
