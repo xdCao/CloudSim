@@ -16,23 +16,23 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static Caohao.CalHelper.calDistribution;
-import static Caohao.CalHelper.calDistributionAddNext;
 import static Caohao.Constants.VAR_THRESHOLD;
 import static java.util.stream.Collectors.toSet;
 
 /**
- * created by xdCao on 2018/5/2
+ * created by xdCao on 2018/5/9
  */
 
-public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
+public class MigrationNew extends VmAllocationPolicyMigrationAbstract {
 
-    private static MyVmSelection vmSelection=new MyVmSelection();
 
-    public EnergyMigrationPolicy() {
+    private static MyNewVmSelection vmSelection=new MyNewVmSelection();
+
+    public MigrationNew() {
         super(vmSelection);
     }
 
-    public EnergyMigrationPolicy(PowerVmSelectionPolicy vmSelectionPolicy) {
+    public MigrationNew(PowerVmSelectionPolicy vmSelectionPolicy) {
         super(vmSelectionPolicy);
     }
 
@@ -160,7 +160,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
 
 
-/*-------------------------------------------------------------------------------------------------------------------------------*/
+    /*-------------------------------------------------------------------------------------------------------------------------------*/
     // todo 虚拟机初始分配策略，不包括迁移，目前是找空闲CPU最少的
     @Override
     public Optional<Host> findHostForVm(Vm vm) {
@@ -179,7 +179,6 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         final Set<Host> overloadedHosts = getOverloadedHosts();
         printOverUtilizedHosts(overloadedHosts);
         final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);
-        updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
         return migrationMap;
     }
 
@@ -330,7 +329,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     }
 
 
-    static class MyVmSelection extends PowerVmSelectionPolicy{
+    static class MyNewVmSelection extends PowerVmSelectionPolicy{
 
         // todo 这里是选择要迁移的虚拟机的算法,目前选出对方差影响最大的
         @Override

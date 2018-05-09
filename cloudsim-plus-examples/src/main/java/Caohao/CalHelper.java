@@ -36,7 +36,7 @@ public class CalHelper {
             for (QosVm vm:vmList){
                 var+=Math.pow(vm.getQos()-ava,2);
             }
-            return var;
+            return var/vmList.size();
         }
 
     }
@@ -56,8 +56,31 @@ public class CalHelper {
         }
     }
 
-    public static double calDistributionNext(Host host, QosVm vm) {
+    public static double calDistributionRemoveNext(Host host, QosVm vm) {
 
+        List<QosVm> vmList = host.getVmList();
+        if (vmList.size()==0||vmList.size()==1){
+            return 0.0;
+        }else {
+            double sum=0;
+            List<Double> qosList=new ArrayList<>();
+            for (QosVm qosVm:vmList){
+                sum+=qosVm.getQos();
+                qosList.add(qosVm.getQos());
+            }
+            sum-=vm.getQos();
+            double ava=sum/(qosList.size()-1);
+            double var=0;
+            for (QosVm qosVm:vmList){
+                var+=Math.pow(qosVm.getQos()-ava,2);
+            }
+            var-=Math.pow(vm.getQos()-ava,2);
+            return var/(vmList.size()-1);
+        }
+
+    }
+
+    public static double calDistributionAddNext(Host host, QosVm vm) {
         List<QosVm> vmList = host.getVmList();
         if (vmList.size()==0){
             return 0.0;
@@ -75,15 +98,19 @@ public class CalHelper {
                 var+=Math.pow(qosVm.getQos()-ava,2);
             }
             var+=Math.pow(vm.getQos()-ava,2);
-            return var;
+            return var/(vmList.size()+1);
         }
-
     }
 
     public static boolean isHostOverloaded(Host host) {
+
+        if (isHostUnderloaded(host))
+            return false;
+
         double upperThreshold = getMyOverUtilizationThreshold(host);
         double var = calDistribution(host);
         return getHostCpuUtilizationPercentage(host) > upperThreshold||var>VAR_THRESHOLD;
+//        return getHostCpuUtilizationPercentage(host) > upperThreshold;
     }
 
     public static double getMyOverUtilizationThreshold(Host host) {
@@ -112,6 +139,15 @@ public class CalHelper {
         return getHostTotalAllocatedMips(host) / host.getTotalMipsCapacity();
     }
 
+    public static double getHostCpuPercentAfterDeallocate(Host host,Vm vm){
+
+        double percent = (getHostTotalAllocatedMips(host) - vm.getCurrentRequestedTotalMips()) / host.getTotalMipsCapacity();
+
+        return percent<0?0:percent;
+
+    }
+
+
     public static double getHostTotalAllocatedMips(Host host){
         List<Vm> vmList = host.getVmList();
         double sum=0;
@@ -131,4 +167,6 @@ public class CalHelper {
     public static double getHostCpuUtilizationPercentageNext(Host host,Vm vm) {
         return (getHostTotalAllocatedMips(host)+vm.getCurrentRequestedTotalMips()) / host.getTotalMipsCapacity();
     }
+
+
 }

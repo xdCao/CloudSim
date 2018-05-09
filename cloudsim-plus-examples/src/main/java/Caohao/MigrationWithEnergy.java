@@ -122,11 +122,13 @@ public class MigrationWithEnergy implements Runnable{
                     pw.printf("Host%3d: %6.2f",host.getId(), getHostCpuUtilizationPercentage(host));
                     if (isHostOverloaded(host)){
                         pw.printf("                              overloaded\n");
-                    }else if(isHostUnderloaded(host)){
-                        pw.printf("                                             underloaded\n");
-                    }else {
-                        pw.printf("\n");
                     }
+                    if(isHostUnderloaded(host)){
+                        pw.printf("                                             underloaded\n");
+                    }
+
+                    pw.printf("\n");
+
 
                     List<QosVm> vmList = host.getVmList();
                     for (QosVm vm:vmList){
@@ -136,18 +138,19 @@ public class MigrationWithEnergy implements Runnable{
                 pw.println();
                 pw.println();
 
-                timePowerMap.add(new PowerTimeStamp(info.getTime(),dc.getPower()));
+                timePowerMap.add(new PowerTimeStamp(info.getTime(),getCurrentTotalPower()));
 
             }
         });
 
 
         dc = createDatacenter(allocationPolicy);
-        dc.setLog(true);
+        dc.setLog(false);
 
 
 //        broker = new DatacenterBrokerSimple(simulation);
         broker=new DatacenterBrokerSimple(simulation);
+        broker.setLog(false);
 
 
         dynamicCreateVmsAndTasks(broker);
@@ -190,6 +193,17 @@ public class MigrationWithEnergy implements Runnable{
 
     }
 
+    private double getCurrentTotalPower() {
+
+        double total=0;
+
+        for (Host host:hostList){
+            total+=host.getPowerModel().getPower(CalHelper.getHostCpuUtilizationPercentage(host));
+        }
+
+        return total;
+    }
+
 
 
     /*---------------------------------------------初始化底层网络----------------------------------------------------*/
@@ -204,7 +218,7 @@ public class MigrationWithEnergy implements Runnable{
         Log.printLine();
 
         dc = new DatacenterSimple(simulation, hostList, allocationPolicy);
-        dc.setSchedulingInterval(SCHEDULE_INTERVAL).setLog(true);
+        dc.setSchedulingInterval(SCHEDULE_INTERVAL).setLog(false);
         return dc;
     }
 
@@ -302,7 +316,7 @@ public class MigrationWithEnergy implements Runnable{
     }
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
         // todo 这里取模
-        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]);
+        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]-QOS_CHANGE);
         vm
             .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
@@ -316,7 +330,7 @@ public class MigrationWithEnergy implements Runnable{
         UtilizationModel utilizationModelFull = new UtilizationModelFull();
         final Cloudlet cloudlet =
             // todo 这里取模
-            new QosCloudlet(Constants.taskLength[taskIndex%100],(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex%100])
+            new QosCloudlet(Constants.taskLength[taskIndex%100]*Constants.taskLengthChange,(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex%100])
                 .setFileSize(CLOUDLET_FILESIZE)
                 .setOutputSize(CLOUDLET_OUTPUTSIZE)
                 .setUtilizationModelCpu(cpuUtilizationModel)
