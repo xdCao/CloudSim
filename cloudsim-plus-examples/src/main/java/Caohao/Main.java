@@ -21,9 +21,9 @@ public class Main {
 //
         MySim();
 
-        worstFit();
-//
-        FirstFit();
+//        worstFit();
+////
+//        FirstFit();
 
 
     }

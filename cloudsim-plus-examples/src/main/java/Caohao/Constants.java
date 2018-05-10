@@ -6,12 +6,12 @@ package Caohao;
 
 public class Constants {
 
-    public static final double VAR_THRESHOLD=0.005;
+    public static final double VAR_THRESHOLD=0.01;
 
     static final int SCHEDULE_INTERVAL = 1;
 
-    static final int HOSTS = 5;
-    static final int VMS = 32;
+    static final int HOSTS = 50;
+    static final int VMS = 256;
 
     static final int    HOST_MIPS = 1000; //for each PE
 
@@ -79,7 +79,7 @@ public class Constants {
                                     18000,14000,12000,13000,15000,
                                     18000,19000,10000,16000,18000};//25个task的length
 
-    public static int taskLengthChange=10;
+    public static int taskLengthChange=1;
 
 
 

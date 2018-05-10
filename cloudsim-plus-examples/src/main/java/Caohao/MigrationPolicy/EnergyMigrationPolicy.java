@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 
 import static Caohao.CalHelper.calDistribution;
 import static Caohao.CalHelper.calDistributionAddNext;
+import static Caohao.CalHelper.getHostCpuUtilizationPercentageNext;
 import static Caohao.Constants.VAR_THRESHOLD;
 import static java.util.stream.Collectors.toSet;
 
@@ -54,7 +55,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
             Comparator.comparingDouble(vm -> CalHelper.calDistributionRemoveNext(vm.getHost(),vm)-CalHelper.calDistribution(vm.getHost()));
         vmsToMigrate.sort(comparator);
 
-        for (final Vm vm : vmsToMigrate) {
+        for (final QosVm vm : vmsToMigrate) {
             /*这里是找迁移目的主机的过程*/
             Log.print("vm"+vm.getId()+" ");
 //            findHostForOverloadedVm(vm, overloadedHosts,host -> checkForVmFromOverLoaded(host,vm))
@@ -85,11 +86,13 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double nextUpperHold=upperThreshold<((QosVm)vm).getQos()?upperThreshold:((QosVm)vm).getQos();
         double var = CalHelper.calDistributionAddNext(host,(QosVm) vm);
         /*不违反QOS且方差在一定范围*/
+        //todo 应该改成方差比原来小
         return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=VAR_THRESHOLD);
+//        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold);
     }
 
-    private boolean checkForVmFromOverLoaded(Host host, Vm vm) {
-        return true;
+    private boolean checkForVmFromOverLoaded(Host host, QosVm vm) {
+        return CalHelper.calDistributionRemoveNext(vm.getHost(),vm)-CalHelper.calDistribution(vm.getHost())<0;
     }
 
 
@@ -104,9 +107,10 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
             //try to find a target Host to place a VM from an underloaded Host that is not underloaded too
             final Optional<Host> optional = findHostForUnderloadedVm(vm, excludedHosts, host -> isHostNotUnderloadedAfterAllocation(host,vm));// todo 这里细节
             if (!optional.isPresent()) {
-                Log.printFormattedLine("\tA new Host, which isn't also underloaded or won't be overloaded, couldn't be found to migrate %s.", vm);
-                Log.printFormattedLine("\tMigration of VMs from the underloaded %s cancelled.", vm.getHost());
-                return new HashMap<>();
+//                Log.printFormattedLine("\tA new Host, which isn't also underloaded or won't be overloaded, couldn't be found to migrate %s.", vm);
+//                Log.printFormattedLine("\tMigration of VMs from the underloaded %s cancelled.", vm.getHost());
+//                return new HashMap<>();
+                continue;
             }
             addVmToMigrationMap(migrationMap, vm, optional.get(), "\t%s will be allocated to %s");
         }
@@ -126,8 +130,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     }
 
     private boolean isHostNotUnderloadedAfterAllocation(Host host, Vm vm) {
-//        return getUtilizationOfCpuMips(host)<0.125;
-        return true;
+        return getUtilizationOfCpuMips(host)>0.125;
     }
 
     private boolean isPowerSaved(Host h,Vm vm) {
@@ -215,6 +218,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         return vmsToMigrate;
     }
 
+
+    //从低负载主机中获取要迁移的虚拟机
     @Override
     protected List<? extends Vm> getVmsToMigrateFromUnderUtilizedHost(Host host) {
         return host.getVmList().stream()
@@ -289,9 +294,9 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         Cloudlet cloudlet = vm.getCloudletScheduler().getCloudletList().get(0);
         double remainTime = cloudlet.getTotalLength() / cloudlet.getNumberOfPes() - cloudlet.getActualCpuTime();
 
-        double addEne=remainTime*addDelta;
-        double decEne=remainTime*decDelta;
+        double addEne=remainTime*addDelta;//这里应该考虑迁移时间进去
 
+        double decEne=remainTime*decDelta;
         double powerSave=decEne-addEne;
         return powerSave;
     }
