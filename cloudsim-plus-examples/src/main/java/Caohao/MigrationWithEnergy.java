@@ -143,7 +143,6 @@ public class MigrationWithEnergy implements Runnable{
             }
         });
 
-
         dc = createDatacenter(allocationPolicy);
         dc.setLog(false);
 
@@ -289,6 +288,11 @@ public class MigrationWithEnergy implements Runnable{
         if (vmList.size()<VMS){
             Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
                 eventInfo.getCloudlet().getId(),1);
+//            for (int i = 0; i < 10; i++) {
+//                if (vmList.size()<VMS){
+//                    dynamicCreateVmsAndTasks(broker);
+//                }
+//            }
             dynamicCreateVmsAndTasks(broker);
         }
 

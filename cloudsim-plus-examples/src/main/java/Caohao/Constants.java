@@ -8,31 +8,31 @@ public class Constants {
 
     public static final double VAR_THRESHOLD=0.01;
 
-    static final int SCHEDULE_INTERVAL = 1;
+    public static final int SCHEDULE_INTERVAL = 1;
 
-    static final int HOSTS = 50;
-    static final int VMS = 256;
+    public static final int HOSTS = 50;
+    public static final int VMS = 256;
 
-    static final int    HOST_MIPS = 1000; //for each PE
+    public static final int    HOST_MIPS = 1000; //for each PE
 
-    static final int    HOST_INITIAL_PES = 64;
+    public static final int    HOST_INITIAL_PES = 32;
 
-    static final long   HOST_BW = 1600000L; //Mb/s
-
-
-    static final int    VM_MIPS = 1000; //for each PE
-    static final long   VM_SIZE = 1000; //image size (MB)
-    static final int    VM_RAM = 10000; //VM memory (MB)
-    static final double VM_BW = HOST_BW/10;
-    static final int    VM_PES = 7;
-    static final int   CLOUDLET_LENGHT = 10000;
-
-    static final long   CLOUDLET_FILESIZE = 300;
-    static final long   CLOUDLET_OUTPUTSIZE = 300;
+    public static final long   HOST_BW = 1600000L; //Mb/s
 
 
-    static final long   HOST_RAM = 5000000; //host memory (MB)
-    static final long   HOST_STORAGE = 10000000; //host storage
+    public static final int    VM_MIPS = 1000; //for each PE
+    public static final long   VM_SIZE = 1000; //image size (MB)
+    public static final int    VM_RAM = 10000; //VM memory (MB)
+    public static final double VM_BW = HOST_BW/10;
+    public static final int    VM_PES = 7;
+    public static final int   CLOUDLET_LENGHT = 10000;
+
+    public static final long   CLOUDLET_FILESIZE = 300;
+    public static final long   CLOUDLET_OUTPUTSIZE = 300;
+
+
+    public static final long   HOST_RAM = 5000000; //host memory (MB)
+    public static final long   HOST_STORAGE = 10000000; //host storage
 
 
 
@@ -58,26 +58,26 @@ public class Constants {
                                 5,1,3,4,5,
                                 6,5,4,5,3};//25个vm的pes
 
-    public static int[] taskLength={12000,10000,11000,18000,16000,
-                                    15000,19000,11000,12000,16000,
-                                    17000,15000,10000,17000,12000,
-                                    18000,14000,12000,13000,15000,
-                                    18000,19000,10000,16000,18000,
-                                    12000,10000,11000,18000,16000,
-                                    15000,19000,11000,12000,16000,
-                                    17000,15000,10000,17000,12000,
-                                    18000,14000,12000,13000,15000,
-                                    18000,19000,10000,16000,18000,
-                                    12000,10000,11000,18000,16000,
-                                    15000,19000,11000,12000,16000,
-                                    17000,15000,10000,17000,12000,
-                                    18000,14000,12000,13000,15000,
-                                    18000,19000,10000,16000,18000,
-                                    12000,10000,11000,18000,16000,
-                                    15000,19000,11000,12000,16000,
-                                    17000,15000,10000,17000,12000,
-                                    18000,14000,12000,13000,15000,
-                                    18000,19000,10000,16000,18000};//25个task的length
+    public static int[] taskLength={2000,10000,11000,18000,16000,
+                                    5000,19000,11000,12000,16000,
+                                    7000,15000,10000,17000,12000,
+                                    8000,14000,12000,13000,15000,
+                                    8000,19000,10000,6000,18000,
+                                    2000,10000,11000,8000,16000,
+                                    5000,19000,11000,2000,16000,
+                                    7000,15000,10000,17000,12000,
+                                    8000,14000,12000,13000,15000,
+                                    8000,19000,10000,16000,8000,
+                                    2000,10000,11000,18000,6000,
+                                    5000,19000,11000,12000,6000,
+                                    7000,15000,10000,7000,12000,
+                                    8000,14000,12000,3000,15000,
+                                    8000,19000,10000,6000,18000,
+                                    2000,10000,11000,8000,16000,
+                                    5000,9000,11000,12000,16000,
+                                    7000,5000,10000,17000,12000,
+                                    8000,4000,12000,13000,15000,
+                                    8000,9000,10000,16000,18000};//25个task的length
 
     public static int taskLengthChange=1;
 

@@ -1,9 +1,12 @@
 package Caohao.MigrationPolicy;
 
+import Caohao.Broker;
 import Caohao.CalHelper;
+import Caohao.Constants;
 import Caohao.entity.QosVm;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationAbstract;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.lists.VmList;
 import org.cloudbus.cloudsim.selectionpolicies.power.PowerVmSelectionPolicy;
@@ -38,6 +41,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     }
 
 
+    /*-----------------------------------------overload----------------------------------------------*/
+
     /*找出因为过载要进行迁移的VM、PM对*/
     @Override
     protected Map<Vm, Host> getMigrationMapFromOverloadedHosts(Set<Host> overloadedHosts) {
@@ -52,15 +57,24 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 //        VmList.sortByCpuUtilization(vmsToMigrate, getDatacenter().getSimulation().clock());
         /*这里是对要迁移的虚拟机进行排序，应该按带来的能耗收益来排,但是对于过载的虚拟机而言，不存在能耗收益，所以这一部分的排序应该按qos*/
         Comparator<QosVm> comparator =
-            Comparator.comparingDouble(vm -> CalHelper.calDistributionRemoveNext(vm.getHost(),vm)-CalHelper.calDistribution(vm.getHost()));
+            Comparator.comparingDouble(vm -> sortVmToMigrate(vm));
         vmsToMigrate.sort(comparator);
 
         for (final QosVm vm : vmsToMigrate) {
             /*这里是找迁移目的主机的过程*/
+            if (vm.getId()==2){
+                Log.print("");
+            }
             Log.print("vm"+vm.getId()+" ");
-//            findHostForOverloadedVm(vm, overloadedHosts,host -> checkForVmFromOverLoaded(host,vm))
-            findHostForOverloadedVm(vm, overloadedHosts, host -> checkForVmFromOverLoaded(host,vm))
-                .ifPresent(host -> addVmToMigrationMap(migrationMap, vm, host, "\t%s will be migrated to %s"));
+
+            Optional<Host> hostOptional= findHostForOverloadedVm(vm, overloadedHosts, host -> checkForVmFromOverLoaded(host, vm));
+            if (hostOptional.isPresent()){
+                addVmToMigrationMap(migrationMap, vm, hostOptional.get(), "\t%s will be migrated to %s");
+            }else {
+                vm.getHost().createTemporaryVm(vm);
+            }
+
+
 
         }
         Log.printLine();
@@ -69,15 +83,19 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
     }
 
+    private double sortVmToMigrate(QosVm vm) {
+        double varDec = CalHelper.calDistributionRemoveNext(vm.getHost(), vm)/CalHelper.calDistribution(vm.getHost());
+        return vm.getQos()*varDec;
+    }
+
     public Optional<Host> findHostForOverloadedVm(final Vm vm, final Set<? extends Host> excludedHosts, final Predicate<Host> predicate) {
         final Stream<Host> stream = this.getHostList().stream()
             .filter(h -> !excludedHosts.contains(h))
             .filter(h -> h.isSuitableForVm(vm))
             .filter(h -> isNotHostOverloadedAfterAllocation(h, vm))
-//            .filter(h -> getHostDistributionAndPower(h,vm)>0)
             .filter(predicate);
 
-        return findHostForVmInternal(vm, stream);
+        return findHostForOverloadedVmInternal(vm, stream);
     }
 
     @Override
@@ -85,16 +103,30 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double upperThreshold = getOverUtilizationThreshold(host);
         double nextUpperHold=upperThreshold<((QosVm)vm).getQos()?upperThreshold:((QosVm)vm).getQos();
         double var = CalHelper.calDistributionAddNext(host,(QosVm) vm);
-        /*不违反QOS且方差在一定范围*/
-        //todo 应该改成方差比原来小
-        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=VAR_THRESHOLD);
-//        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold);
+        /*不违反QOS且方差比原来小*/
+        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=CalHelper.calDistribution(host));
+
     }
 
     private boolean checkForVmFromOverLoaded(Host host, QosVm vm) {
         return CalHelper.calDistributionRemoveNext(vm.getHost(),vm)-CalHelper.calDistribution(vm.getHost())<0;
     }
 
+    protected Optional<Host> findHostForOverloadedVmInternal(final Vm vm, final Stream<Host> hostStream){
+        final Comparator<Host> hostPowerConsumptionComparator =
+            Comparator.comparingDouble(h -> compareHostDistribution(h, vm));
+
+        return additionalHostFilters(vm, hostStream).min(hostPowerConsumptionComparator);
+    }
+
+    private double compareHostDistribution(Host h, Vm vm) {
+        double var = calDistributionAddNext(h, (QosVm) vm) / calDistribution(h);
+        double percent=CalHelper.getHostCpuUtilizationPercentageNext(h,vm);
+        return var/percent;
+    }
+
+
+    /*-----------------------------------------------underload-----------------------------------------------*/
 
     @Override
     protected Map<Vm, Host> getNewVmPlacementFromUnderloadedHost(List<? extends Vm> vmsToMigrate, Set<? extends Host> excludedHosts) {
@@ -102,6 +134,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         final Map<Vm, Host> migrationMap = new HashMap<>();
 
         /*这里对要迁移的vm排序*/
+        // todo 这里对能耗
         VmList.sortByCpuUtilization(vmsToMigrate, getDatacenter().getSimulation().clock());
         for (final Vm vm : vmsToMigrate) {
             //try to find a target Host to place a VM from an underloaded Host that is not underloaded too
@@ -126,11 +159,11 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
             .filter(h -> isPowerSaved(h,vm))
             .filter(predicate);
 
-        return findHostForVmInternal(vm, stream);
+        return findHostForUnderloadedVmInternal(vm, stream);
     }
 
     private boolean isHostNotUnderloadedAfterAllocation(Host host, Vm vm) {
-        return getUtilizationOfCpuMips(host)>0.125;
+        return CalHelper.getHostCpuUtilizationPercentageNext(host,vm)>0.125;
     }
 
     private boolean isPowerSaved(Host h,Vm vm) {
@@ -141,8 +174,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
             return false;
     }
 
-    @Override
-    protected Optional<Host> findHostForVmInternal(final Vm vm, final Stream<Host> hostStream){
+
+    protected Optional<Host> findHostForUnderloadedVmInternal(final Vm vm, final Stream<Host> hostStream){
         final Comparator<Host> hostPowerConsumptionComparator =
             Comparator.comparingDouble(h -> getHostDistributionAndPower(h, vm));
 
@@ -153,10 +186,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     //这个是低负载迁移的算法核心
     private double getHostDistributionAndPower(Host h, Vm vm) {
         double powerSave = getPowerSaveAfterAllocationDifference(h, vm);
-//        double var=Math.abs(((QosVm)vm).getQos()-calAvaQos(h));
-//        return powerDif+var;
-//        return var;
-        return powerSave;
+        double var = calDistributionAddNext(h, (QosVm) vm) / calDistribution(h);
+        return powerSave/var;
     }
 
 
@@ -171,8 +202,16 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         Optional<Host> max = hostList.stream()
             .filter(e -> e.isSuitableForVm(vm))
             .filter(e->isNotHostOverloadedAfterAllocationWithOutQos(e,vm))
-            .min(Comparator.comparingDouble(Host::getAvailableMips));
+            .max(Comparator.comparingDouble(e->allocateCompare(e,vm)));
         return max;
+    }
+
+    private double allocateCompare(Host host, Vm vm) {
+
+        double var = calDistributionAddNext(host, (QosVm) vm) / calDistribution(host);
+        double percent=CalHelper.getHostCpuUtilizationPercentageNext(host,vm);
+        return percent/var;
+
     }
 
 
@@ -207,6 +246,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
             if (Vm.NULL == vm) {
                 break;
             }
+            if (vm.getId()==2)
+                Log.print("");
             vmsToMigrate.add((QosVm) vm);
             /*循环释放虚拟机直到主机不再过载*/
             host.destroyTemporaryVm(vm);
@@ -292,7 +333,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double decDelta= source.getPowerModel().getPower(CalHelper.getHostCpuUtilizationPercentage(source))-source.getPowerModel().getPower(CalHelper.getHostCpuPercentAfterDeallocate(source,vm));
 
         Cloudlet cloudlet = vm.getCloudletScheduler().getCloudletList().get(0);
-        double remainTime = cloudlet.getTotalLength() / cloudlet.getNumberOfPes() - cloudlet.getActualCpuTime();
+        double remainTime = cloudlet.getTotalLength() / (Constants.HOST_MIPS*cloudlet.getNumberOfPes()) - (cloudlet.getBroker().getSimulation().clock()-cloudlet.getExecStartTime());
 
         double addEne=remainTime*addDelta;//这里应该考虑迁移时间进去
 
