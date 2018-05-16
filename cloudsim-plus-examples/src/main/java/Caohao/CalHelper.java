@@ -103,9 +103,9 @@ public class CalHelper {
     }
 
     public static boolean isHostOverloaded(Host host) {
-
-        if (isHostUnderloaded(host))
-            return false;
+//
+//        if (isHostUnderloaded(host))
+//            return false;
 
         double upperThreshold = getMyOverUtilizationThreshold(host);
         double var = calDistribution(host);

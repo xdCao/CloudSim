@@ -180,7 +180,6 @@ public class MigrationWithEnergy implements Runnable{
             bw.close();
             fw.close();
 
-
             pw1.close();
             bw1.close();
             fw1.close();
@@ -294,6 +293,9 @@ public class MigrationWithEnergy implements Runnable{
 //                }
 //            }
             dynamicCreateVmsAndTasks(broker);
+//            dynamicCreateVmsAndTasks(broker);
+//            dynamicCreateVmsAndTasks(broker);
+//            dynamicCreateVmsAndTasks(broker);
         }
 
 
@@ -340,6 +342,9 @@ public class MigrationWithEnergy implements Runnable{
                 .setUtilizationModelCpu(cpuUtilizationModel)
                 .setUtilizationModelRam(utilizationModelFull)
                 .setUtilizationModelBw(utilizationModelFull);
+
+//        cloudlet.setSubmissionDelay(Constants.delay[taskIndex%100]);
+
         taskIndex++;
         return cloudlet;
     }

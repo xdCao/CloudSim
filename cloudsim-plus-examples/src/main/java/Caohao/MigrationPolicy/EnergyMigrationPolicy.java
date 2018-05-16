@@ -74,8 +74,6 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
                 vm.getHost().createTemporaryVm(vm);
             }
 
-
-
         }
         Log.printLine();
 
@@ -208,9 +206,11 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
     private double allocateCompare(Host host, Vm vm) {
 
-        double var = calDistributionAddNext(host, (QosVm) vm) / calDistribution(host);
-        double percent=CalHelper.getHostCpuUtilizationPercentageNext(host,vm);
-        return percent/var;
+        return CalHelper.getHostCpuUtilizationPercentage(host);
+//
+//        double var = calDistributionAddNext(host, (QosVm) vm) / calDistribution(host);
+//        double percent=CalHelper.getHostCpuUtilizationPercentageNext(host,vm);
+//        return percent/var;
 
     }
 

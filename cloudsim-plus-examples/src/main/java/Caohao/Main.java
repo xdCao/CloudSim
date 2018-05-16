@@ -18,12 +18,11 @@ public class Main {
 
 
     public static void main(String[] args) {
-//
         MySim();
-////
-//        worstFit();
-////
-//        FirstFit();
+
+        worstFit();
+//
+        FirstFit();
 
 
     }
@@ -31,7 +30,7 @@ public class Main {
     public static void MySim() {
 
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"E://share.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"/Users/caohao/share.txt");
 
         migrationWithEnergy.run();
         migrationWithEnergy.print();
@@ -41,7 +40,7 @@ public class Main {
 
     public static void worstFit() {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"E://worstFit.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"/Users/caohao/worstFit.txt");
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
@@ -50,7 +49,7 @@ public class Main {
 
     public static void FirstFit() {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"E://firstFit.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/firstFit.txt");
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());

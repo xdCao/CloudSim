@@ -6,16 +6,16 @@ package Caohao;
 
 public class Constants {
 
-    public static final double VAR_THRESHOLD=0.01;
+    public static final double VAR_THRESHOLD=0.02;
 
     public static final int SCHEDULE_INTERVAL = 1;
 
-    public static final int HOSTS = 50;
+    public static final int HOSTS = 20;
     public static final int VMS = 256;
 
     public static final int    HOST_MIPS = 1000; //for each PE
 
-    public static final int    HOST_INITIAL_PES = 32;
+    public static final int    HOST_INITIAL_PES = 64;
 
     public static final long   HOST_BW = 1600000L; //Mb/s
 
@@ -105,5 +105,27 @@ public class Constants {
                                     0.7,0.8,0.9,0.6,0.8};
 
     public static double QOS_CHANGE=0.3;
+
+
+    public static int[] delay={ 4,3,4,2,6,
+        4,5,3,2,5,
+        6,1,2,6,4,
+        5,1,1,4,5,
+        6,5,4,5,3,
+        2,3,4,3,6,
+        4,5,3,2,5,
+        6,1,2,6,4,
+        5,1,3,4,5,
+        6,2,4,5,3,
+        5,3,4,4,6,
+        4,5,3,2,5,
+        6,1,5,6,4,
+        5,1,5,2,5,
+        6,4,4,5,3,
+        5,3,4,3,6,
+        4,5,3,2,5,
+        6,1,6,6,4,
+        5,1,3,4,5,
+        6,5,4,5,3};//25个vm的delay
 
 }
