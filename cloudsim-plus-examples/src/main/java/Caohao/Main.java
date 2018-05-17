@@ -19,13 +19,13 @@ public class Main {
 
 
     public static void main(String[] args) {
-//        MySim();
+        MySim();
 //
 //        worstFit();
 //
 //        FirstFit();
-
-        FirstFitMig();
+//
+//        FirstFitMig();
 
     }
 

@@ -772,7 +772,9 @@ public abstract class DatacenterBrokerAbstract extends CloudSimEntity implements
                 println(String.format(
                     "%.2f: %s: Trying to Create %s in %s",
                     getSimulation().clock(), getName(), vm, datacenter.getName()));
-                sendNow(datacenter, CloudSimTags.VM_CREATE_ACK, vm);
+                // todo 注意
+//                sendNow(datacenter, CloudSimTags.VM_CREATE_ACK, vm);
+                send(datacenter,vm.getSubmissionDelay(),CloudSimTags.VM_CREATE_ACK,vm);
                 vmCreationRequestsMap.put(vm, datacenter);
                 requestedVms++;
             }

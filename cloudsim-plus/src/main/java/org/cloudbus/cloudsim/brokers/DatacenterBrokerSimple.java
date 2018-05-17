@@ -13,6 +13,10 @@ import org.cloudbus.cloudsim.vms.Vm;
 
 import org.cloudbus.cloudsim.core.CloudSim;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * A simple implementation of {@link DatacenterBroker} that try to host customer's VMs
  * at the first Datacenter found. If there isn't capacity in that one,
@@ -103,6 +107,19 @@ public class DatacenterBrokerSimple extends DatacenterBrokerAbstract {
 
         final int vmIndex = getVmExecList().indexOf(getLastSelectedVm());
         return (vmIndex + 1) % getVmExecList().size();
+    }
+
+
+
+    public void submitVm(final Vm vm,double delay) {
+        Objects.requireNonNull(vm);
+        if(vm == Vm.NULL){
+            return;
+        }
+
+        final List<Vm> newList = new ArrayList<>(1);
+        newList.add(vm);
+        submitVmList(newList,delay);
     }
 
 }

@@ -61,7 +61,7 @@ public class MigrationWithEnergy implements Runnable{
 
     private final List<Cloudlet> cloudletList=new ArrayList<>(VMS);
 
-    private DatacenterBroker broker;
+    private DatacenterBrokerSimple broker;
 
     private Datacenter dc;
 
@@ -280,46 +280,55 @@ public class MigrationWithEnergy implements Runnable{
 
     /*--------------------------------------------------------------------------------动态请求----------------------*/
 
-    private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBroker broker) {
+    private void submitNewVmsAndCloudletsToBroker(CloudletVmEventInfo eventInfo, DatacenterBrokerSimple broker) {
 
         eventInfo.getVm().getHost().destroyVm(eventInfo.getVm());
 
-        if (vmList.size()<VMS){
-            Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
-                eventInfo.getCloudlet().getId(),1);
-//            for (int i = 0; i < 10; i++) {
-//                if (vmList.size()<VMS){
-//                    dynamicCreateVmsAndTasks(broker);
-//                }
-//            }
-            dynamicCreateVmsAndTasks(broker);
+//        if (vmList.size()<VMS){
+//            Log.printFormattedLine("\n\t#Cloudlet %d finished. Submitting %d new VMs to the broker\n",
+//                eventInfo.getCloudlet().getId(),1);
+////            for (int i = 0; i < 10; i++) {
+////                if (vmList.size()<VMS){
+////                    dynamicCreateVmsAndTasks(broker);
+////                }
+////            }
 //            dynamicCreateVmsAndTasks(broker);
-//            dynamicCreateVmsAndTasks(broker);
-//            dynamicCreateVmsAndTasks(broker);
+////            dynamicCreateVmsAndTasks(broker);
+////            dynamicCreateVmsAndTasks(broker);
+////            dynamicCreateVmsAndTasks(broker);
+//        }
+
+
+    }
+
+
+    private void dynamicCreateVmsAndTasks(DatacenterBrokerSimple broker){
+
+
+        for (int i = 0; i < 2; i++) {
+            // todo 这里取模
+            QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
+//        Vm vm=createVm(vmList.size(),broker,VM_PES);
+            index++;
+            vmList.add(vm);
+            double delay=Constants.delay[index%100];
+            broker.submitVm(vm,delay);
+
+            UtilizationModelFull um = new UtilizationModelFull();
+            Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
+            cloudlet.setSubmissionDelay(delay);
+        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
+            cloudletList.add(cloudlet);
+            broker.submitCloudlet(cloudlet);
+            broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
         }
 
 
-    }
-
-
-    private void dynamicCreateVmsAndTasks(DatacenterBroker broker){
-
-        // todo 这里取模
-        QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
-//        Vm vm=createVm(vmList.size(),broker,VM_PES);
-        index++;
-        vmList.add(vm);
-        broker.submitVm(vm);
-
-        UtilizationModelFull um = new UtilizationModelFull();
-        Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
-        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
-        cloudletList.add(cloudlet);
-        broker.submitCloudlet(cloudlet);
-        broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
 
 
     }
+
+
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
         // todo 这里取模
         QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]-QOS_CHANGE);
