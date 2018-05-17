@@ -109,8 +109,8 @@ public class CalHelper {
 
         double upperThreshold = getMyOverUtilizationThreshold(host);
         double var = calDistribution(host);
-        return getHostCpuUtilizationPercentage(host) > upperThreshold||var>VAR_THRESHOLD;
-//        return getHostCpuUtilizationPercentage(host) > upperThreshold;
+//        return getHostCpuUtilizationPercentage(host) > upperThreshold||var>VAR_THRESHOLD;
+        return getHostCpuUtilizationPercentage(host) > upperThreshold;
     }
 
     public static double getMyOverUtilizationThreshold(Host host) {

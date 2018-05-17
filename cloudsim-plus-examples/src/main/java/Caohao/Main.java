@@ -2,6 +2,7 @@ package Caohao;
 
 import Caohao.MigrationPolicy.EnergyMigrationPolicy;
 import Caohao.MigrationPolicy.FirstFit;
+import Caohao.MigrationPolicy.FirstFitMigration;
 import Caohao.MigrationPolicy.WorstFit;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicyFirstFit;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationBestFitStaticThreshold;
@@ -18,12 +19,13 @@ public class Main {
 
 
     public static void main(String[] args) {
-        MySim();
-
-        worstFit();
+//        MySim();
 //
-        FirstFit();
+//        worstFit();
+//
+//        FirstFit();
 
+        FirstFitMig();
 
     }
 
@@ -53,6 +55,16 @@ public class Main {
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
+    }
+
+
+    public static void FirstFitMig(){
+
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFitMigration(),"/Users/caohao/firstFitMig.txt");
+        migrationWithEnergy.run();
+        migrationWithEnergy.print();
+        System.out.println("simulation time: "+migrationWithEnergy.getTime());
+
     }
 
 
