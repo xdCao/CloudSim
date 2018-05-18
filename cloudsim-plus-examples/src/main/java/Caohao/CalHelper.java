@@ -23,7 +23,7 @@ public class CalHelper {
 
         List<QosVm> vmList = host.getVmList();
         if (vmList.size()==0){
-            return 0.00000001;
+            return 0.01;
         }else {
             double sum=0;
             List<Double> qosList=new ArrayList<>();
@@ -60,7 +60,7 @@ public class CalHelper {
 
         List<QosVm> vmList = host.getVmList();
         if (vmList.size()==0||vmList.size()==1){
-            return 0.00000001;
+            return 0.01;
         }else {
             double sum=0;
             List<Double> qosList=new ArrayList<>();
@@ -83,7 +83,7 @@ public class CalHelper {
     public static double calDistributionAddNext(Host host, QosVm vm) {
         List<QosVm> vmList = host.getVmList();
         if (vmList.size()==0){
-            return 0.00000001;
+            return 0.01;
         }else {
             double sum=0;
             List<Double> qosList=new ArrayList<>();

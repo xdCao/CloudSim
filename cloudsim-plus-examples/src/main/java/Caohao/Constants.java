@@ -10,8 +10,10 @@ public class Constants {
 
     public static final int SCHEDULE_INTERVAL = 1;
 
-    public static final int HOSTS = 50;
-    public static final int VMS = 100;
+    public static final int HOSTS = 25;
+    public static final int VMS = 1000;
+
+    public static final double TIME=300;
 
     public static final int    HOST_MIPS = 1000; //for each PE
 
@@ -79,7 +81,7 @@ public class Constants {
                                     8000,4000,12000,13000,15000,
                                     8000,9000,10000,16000,18000};//25个task的length
 
-    public static int taskLengthChange=1;
+    public static int taskLengthChange=10;
 
 
 

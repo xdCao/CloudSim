@@ -62,9 +62,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
         for (final QosVm vm : vmsToMigrate) {
             /*这里是找迁移目的主机的过程*/
-            if (vm.getId()==2){
-                Log.print("");
-            }
+
             Log.print("vm"+vm.getId()+" ");
 
             Optional<Host> hostOptional= findHostForOverloadedVm(vm, overloadedHosts, host -> checkForVmFromOverLoaded(host, vm));
@@ -101,6 +99,11 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double upperThreshold = getOverUtilizationThreshold(host);
         double nextUpperHold=upperThreshold<((QosVm)vm).getQos()?upperThreshold:((QosVm)vm).getQos();
         double var = CalHelper.calDistributionAddNext(host,(QosVm) vm);
+
+//        if (host.getVmList().size()==1){
+//            return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=Constants.VAR_THRESHOLD);
+//        }
+
         /*不违反QOS且方差比原来小*/
         return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=CalHelper.calDistribution(host));
 

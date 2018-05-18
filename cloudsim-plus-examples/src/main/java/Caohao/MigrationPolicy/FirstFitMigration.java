@@ -54,12 +54,22 @@ public class FirstFitMigration extends VmAllocationPolicyMigrationAbstract {
 
     @Override
     public Optional<Host> findHostForVm(final Vm vm) {
-        return this.getHostList()
-            .stream()
-            .sorted()
-            .filter(h -> h.isSuitableForVm(vm))
-            .filter(h->isNotHostOverloadedAfterAllocationWithOutQos(h,vm))
-            .findFirst();
+        List<Host> hostList = getHostList();
+        Optional<Host> max = hostList.stream()
+            .filter(e -> e.isSuitableForVm(vm))
+            .filter(e->isNotHostOverloadedAfterAllocationWithOutQos(e,vm))
+            .max(Comparator.comparingDouble(e->allocateCompare(e,vm)));
+        return max;
+    }
+
+    private double allocateCompare(Host host, Vm vm) {
+
+        return CalHelper.getHostCpuUtilizationPercentage(host);
+//
+//        double var = calDistributionAddNext(host, (QosVm) vm) / calDistribution(host);
+//        double percent=CalHelper.getHostCpuUtilizationPercentageNext(host,vm);
+//        return percent/var;
+
     }
 
     /*获取迁移后的新映射关系*/

@@ -77,6 +77,8 @@ public class MigrationWithEnergy implements Runnable{
 
     public File share;
 
+    public int clock=1;
+
 
     FileWriter fw = null;
     BufferedWriter bw = null;
@@ -140,6 +142,14 @@ public class MigrationWithEnergy implements Runnable{
 
                 timePowerMap.add(new PowerTimeStamp(info.getTime(),getCurrentTotalPower()));
 
+                if ((int)info.getTime()==clock){
+                    if (vmList.size()<Constants.VMS){
+                        dynamicCreateVmsAndTasks(broker);
+                    }
+                    clock++;
+                }
+
+
             }
         });
 
@@ -154,7 +164,7 @@ public class MigrationWithEnergy implements Runnable{
 
         dynamicCreateVmsAndTasks(broker);
 
-//        simulation.terminateAt(74);
+        simulation.terminateAt(TIME);
 
         time = simulation.start();
 
@@ -304,29 +314,24 @@ public class MigrationWithEnergy implements Runnable{
 
     private void dynamicCreateVmsAndTasks(DatacenterBrokerSimple broker){
 
-
-        for (int i = 0; i < 2; i++) {
             // todo 这里取模
             QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
 //        Vm vm=createVm(vmList.size(),broker,VM_PES);
             index++;
             vmList.add(vm);
             double delay=Constants.delay[index%100];
-            broker.submitVm(vm,delay);
+            broker.submitVm(vm);
 
             UtilizationModelFull um = new UtilizationModelFull();
             Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
-            cloudlet.setSubmissionDelay(delay);
+//            cloudlet.setSubmissionDelay(delay);
         cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
             cloudletList.add(cloudlet);
             broker.submitCloudlet(cloudlet);
             broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
-        }
-
-
-
 
     }
+
 
 
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
