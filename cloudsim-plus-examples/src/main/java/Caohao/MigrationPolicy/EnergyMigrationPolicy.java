@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import static Caohao.CalHelper.calDistribution;
 import static Caohao.CalHelper.calDistributionAddNext;
 import static Caohao.CalHelper.getHostCpuUtilizationPercentageNext;
-import static Caohao.Constants.VAR_THRESHOLD;
+import static Caohao.Constants.*;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -32,6 +32,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
     private static MyVmSelection vmSelection=new MyVmSelection();
 
+    private double load=0;
+
     public EnergyMigrationPolicy() {
         super(vmSelection);
     }
@@ -40,6 +42,36 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         super(vmSelectionPolicy);
     }
 
+
+    public double getDynamicVar(){
+
+        List<Host> hostList = getHostList();
+
+        List<QosVm> vmList=new ArrayList<>();
+
+        for (Host host:hostList){
+            vmList.addAll(host.getVmList());
+        }
+
+        double vmCap=0;
+        double pmCap=HOSTS*HOST_INITIAL_PES*HOST_MIPS;
+
+        for (QosVm vm:vmList){
+
+            vmCap+=vm.getCurrentRequestedTotalMips();
+//            pmCap+=vm.getQos()*HOST_MIPS*HOST_INITIAL_PES;
+
+        }
+
+        double loadFactor=vmCap/pmCap;
+
+        load=loadFactor>load?loadFactor:load;
+
+//        System.out.println("----------------------------------------------------------------------------------------------------"+load);
+
+        return VAR_THRESHOLD/loadFactor;
+
+    }
 
     /*-----------------------------------------overload----------------------------------------------*/
 
@@ -82,6 +114,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     private double sortVmToMigrate(QosVm vm) {
         double varDec = CalHelper.calDistributionRemoveNext(vm.getHost(), vm)/CalHelper.calDistribution(vm.getHost());
         return vm.getQos()*varDec;
+//        return vm.getQos();
     }
 
     public Optional<Host> findHostForOverloadedVm(final Vm vm, final Set<? extends Host> excludedHosts, final Predicate<Host> predicate) {
@@ -100,12 +133,9 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double nextUpperHold=upperThreshold<((QosVm)vm).getQos()?upperThreshold:((QosVm)vm).getQos();
         double var = CalHelper.calDistributionAddNext(host,(QosVm) vm);
 
-//        if (host.getVmList().size()==1){
-//            return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=Constants.VAR_THRESHOLD);
-//        }
-
         /*不违反QOS且方差比原来小*/
-        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=CalHelper.calDistribution(host));
+//        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=CalHelper.calDistribution(host));
+        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=getDynamicVar());// todo 新的动态门限
 
     }
 
@@ -125,6 +155,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double percent=CalHelper.getHostCpuUtilizationPercentageNext(h,vm);
         return var/percent;
     }
+
 
 
     /*-----------------------------------------------underload-----------------------------------------------*/
@@ -313,7 +344,8 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double upperThreshold = getOverUtilizationThreshold(host);
         addHistoryEntryIfAbsent(host,upperThreshold);
         double var = calDistribution(host);
-        return (CalHelper.getHostCpuUtilizationPercentage(host)>upperThreshold||var>VAR_THRESHOLD);
+//        return (CalHelper.getHostCpuUtilizationPercentage(host)>upperThreshold||var>VAR_THRESHOLD); //todo 应用了新的动态门限
+        return (CalHelper.getHostCpuUtilizationPercentage(host)>upperThreshold||var>getDynamicVar());
 
     }
 
