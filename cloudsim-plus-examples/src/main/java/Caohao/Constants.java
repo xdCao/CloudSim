@@ -11,7 +11,7 @@ public class Constants {
     public static final int SCHEDULE_INTERVAL = 1;
 
     public static final int HOSTS = 25;
-    public static final int VMS = 1000;
+    public static final int VMS = 300;
 
     public static final double TIME=300;
 

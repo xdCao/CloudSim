@@ -18,13 +18,17 @@ public class Main {
     public static void main(String[] args) {
         MySim();
 
-//        staticVar();
-////
+        uniform();
+
+        staticVar();
+
+        FirstFit();
+
+        FirstFitMig();
+
 //        worstFit();
-////
-//        FirstFit();
-//
-//        FirstFitMig();
+
+
 
     }
 
@@ -32,6 +36,16 @@ public class Main {
 
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"/Users/caohao/share.txt");
+
+        migrationWithEnergy.run();
+        migrationWithEnergy.print();
+        System.out.println("simulation time: "+migrationWithEnergy.getTime());
+
+    }
+
+    public static void uniform(){
+
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/uniform.txt");
 
         migrationWithEnergy.run();
         migrationWithEnergy.print();

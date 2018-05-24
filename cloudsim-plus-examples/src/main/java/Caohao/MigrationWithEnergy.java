@@ -37,9 +37,7 @@ import org.cloudsimplus.listeners.EventListener;
 import java.io.*;
 import java.util.*;
 
-import static Caohao.CalHelper.getHostCpuUtilizationPercentage;
-import static Caohao.CalHelper.isHostOverloaded;
-import static Caohao.CalHelper.isHostUnderloaded;
+import static Caohao.CalHelper.*;
 import static Caohao.Constants.*;
 
 
@@ -118,10 +116,10 @@ public class MigrationWithEnergy implements Runnable{
         simulation.addOnClockTickListener(new EventListener<EventInfo>() {
             @Override
             public void update(EventInfo info) {
-                pw.printf("time: %6.2f\n",info.getTime());
+                pw.printf("time: %6.2f   totalLoad: %6.4f   \n",info.getTime(),getLoad());
                 for (Host host:hostList){
                     pw.println();
-                    pw.printf("Host%3d: %6.2f",host.getId(), getHostCpuUtilizationPercentage(host));
+                    pw.printf("Host%3d: %6.2f  var:%6.6f",host.getId(), getHostCpuUtilizationPercentage(host),calDistribution(host));
                     if (isHostOverloaded(host)){
                         pw.printf("                              overloaded\n");
                     }
@@ -164,7 +162,7 @@ public class MigrationWithEnergy implements Runnable{
 
         dynamicCreateVmsAndTasks(broker);
 
-        simulation.terminateAt(TIME);
+//        simulation.terminateAt(TIME);
 
         time = simulation.start();
 
@@ -199,6 +197,29 @@ public class MigrationWithEnergy implements Runnable{
 
 
 
+    }
+
+    public double getLoad() {
+
+        List<Host> hostList = getHostList();
+
+        List<QosVm> vmList=new ArrayList<>();
+
+        for (Host host:hostList){
+            vmList.addAll(host.getVmList());
+        }
+
+        double vmCap=0;
+        double pmCap=HOSTS*HOST_INITIAL_PES*HOST_MIPS;
+
+        for (QosVm vm:vmList){
+
+            vmCap+=vm.getCurrentRequestedTotalMips();
+
+        }
+
+        double curLoad=vmCap/pmCap;
+        return curLoad;
     }
 
     private double getCurrentTotalPower() {

@@ -234,11 +234,12 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         Optional<Host> max = hostList.stream()
             .filter(e -> e.isSuitableForVm(vm))
             .filter(e->isNotHostOverloadedAfterAllocationWithOutQos(e,vm))
+//            .filter(e->isNotHostOverloadedAfterAllocation(e,vm))
             .max(Comparator.comparingDouble(e->allocateCompare(e,vm)));
         return max;
     }
 
-    private double allocateCompare(Host host, Vm vm) {
+    public double allocateCompare(Host host, Vm vm) {
 
         return CalHelper.getHostCpuUtilizationPercentage(host);
 //
