@@ -19,14 +19,16 @@ public class Constants {
 
     public static final int    HOST_INITIAL_PES = 64;
 
-    public static final long   HOST_BW = 1600000L; //Mb/s
+    public static final long   HOST_BW = 16000L; //Mb/s
 
 
     public static final int    VM_MIPS = 1000; //for each PE
     public static final long   VM_SIZE = 1000; //image size (MB)
-    public static final int    VM_RAM = 10000; //VM memory (MB)
-    public static final double VM_BW = HOST_BW/10;
+    public static final int    VM_RAM = 8000; //VM memory (MB)
+
     public static final int    VM_PES = 7;
+
+
     public static final int   CLOUDLET_LENGHT = 10000;
 
     public static final long   CLOUDLET_FILESIZE = 300;
@@ -59,6 +61,21 @@ public class Constants {
                                 6,1,6,6,4,
                                 5,1,3,4,5,
                                 6,5,4,5,3};//25个vm的pes
+
+
+    public static final int[] VM_BW = {  1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230,
+                                            1000,1200,1000,2300,1230, 1000,1200,1000,2300,1230};
+
+//    public static final int VM_BW=10;
+
 
     public static int[] taskLength={2000,10000,11000,18000,16000,
                                     5000,19000,11000,12000,16000,

@@ -200,6 +200,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
     private boolean isPowerSaved(Host h,Vm vm) {
         double powerSaveAfterAllocationDifference = getPowerSaveAfterAllocationDifference(h, vm);
+
         if (powerSaveAfterAllocationDifference>0)
             return true;
         else
@@ -218,8 +219,12 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
     //这个是低负载迁移的算法核心
     private double getHostDistributionAndPower(Host h, Vm vm) {
         double powerSave = getPowerSaveAfterAllocationDifference(h, vm);
-        double var = calDistributionAddNext(h, (QosVm) vm) / calDistribution(h);
-        return powerSave/var;
+//        double var = calDistributionAddNext(h, (QosVm) vm) / (calDistribution(h)==0?0.0000001:calDistribution(h));
+
+//        return powerSave/var;
+
+        return powerSave;
+
     }
 
 
@@ -361,6 +366,13 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
 
     protected double getPowerSaveAfterAllocationDifference(final Host des, final Vm vm){
+
+        double migCostPower=getPowerAfterAllocationDifference(des, vm);
+        double migTime = (double) vm.getRam().getCapacity() / (double) vm.getHost().getBw().getAvailableResource();
+        double migCost = migCostPower * migTime;
+
+
+
         final double powerAfterAllocation = getPowerAfterAllocation(des, vm);
 
         Host source=vm.getHost();
@@ -371,10 +383,10 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         Cloudlet cloudlet = vm.getCloudletScheduler().getCloudletList().get(0);
         double remainTime = cloudlet.getTotalLength() / (Constants.HOST_MIPS*cloudlet.getNumberOfPes()) - (cloudlet.getBroker().getSimulation().clock()-cloudlet.getExecStartTime());
 
-        double addEne=remainTime*addDelta;//这里应该考虑迁移时间进去
+        double addEne=(remainTime-migTime)*addDelta;//这里应该考虑迁移时间进去
 
-        double decEne=remainTime*decDelta;
-        double powerSave=decEne-addEne;
+        double decEne=(remainTime-migTime)*decDelta;
+        double powerSave=decEne-addEne-migCost;
         return powerSave;
     }
     @Override

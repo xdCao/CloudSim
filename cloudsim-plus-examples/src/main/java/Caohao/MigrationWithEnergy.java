@@ -116,7 +116,16 @@ public class MigrationWithEnergy implements Runnable{
         simulation.addOnClockTickListener(new EventListener<EventInfo>() {
             @Override
             public void update(EventInfo info) {
-                pw.printf("time: %6.2f   totalLoad: %6.4f   \n",info.getTime(),getLoad());
+
+                List<Host> hostList = getHostList();
+
+                List<QosVm> vmListTotal=new ArrayList<>();
+
+                for (Host host:hostList){
+                    vmListTotal.addAll(host.getVmList());
+                }
+
+                pw.printf("time: %6.2f   totalLoad: %6.4f   totalVar: %6.4f\n",info.getTime(),getLoad(vmListTotal),getTotalVar(vmListTotal));
                 for (Host host:hostList){
                     pw.println();
                     pw.printf("Host%3d: %6.2f  var:%6.6f",host.getId(), getHostCpuUtilizationPercentage(host),calDistribution(host));
@@ -199,15 +208,7 @@ public class MigrationWithEnergy implements Runnable{
 
     }
 
-    public double getLoad() {
-
-        List<Host> hostList = getHostList();
-
-        List<QosVm> vmList=new ArrayList<>();
-
-        for (Host host:hostList){
-            vmList.addAll(host.getVmList());
-        }
+    public double getLoad(List<QosVm> vmList) {
 
         double vmCap=0;
         double pmCap=HOSTS*HOST_INITIAL_PES*HOST_MIPS;
@@ -220,6 +221,25 @@ public class MigrationWithEnergy implements Runnable{
 
         double curLoad=vmCap/pmCap;
         return curLoad;
+    }
+
+    public double getTotalVar(List<QosVm> vmList){
+        if (vmList.size()==0){
+            return 0.0;
+        }else {
+            double sum=0;
+            List<Double> qosList=new ArrayList<>();
+            for (QosVm vm:vmList){
+                sum+=vm.getQos();
+                qosList.add(vm.getQos());
+            }
+            double ava=sum/qosList.size();
+            double var=0;
+            for (QosVm vm:vmList){
+                var+=Math.pow(vm.getQos()-ava,2);
+            }
+            return var/vmList.size();
+        }
     }
 
     private double getCurrentTotalPower() {
@@ -359,7 +379,7 @@ public class MigrationWithEnergy implements Runnable{
         // todo 这里取模
         QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]-QOS_CHANGE);
         vm
-            .setRam(VM_RAM).setBw((long)VM_BW).setSize(VM_SIZE)
+            .setRam(VM_RAM).setBw((long)VM_BW[index%100]).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
         vm.getUtilizationHistory().enable();
         return vm;

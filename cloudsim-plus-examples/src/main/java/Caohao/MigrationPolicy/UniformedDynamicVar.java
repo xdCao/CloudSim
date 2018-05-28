@@ -41,6 +41,10 @@ public class UniformedDynamicVar extends EnergyMigrationPolicy{
 
         double curLoad=vmCap/pmCap;
 
+        if (curLoad==0){
+            curLoad=0.00001;
+        }
+
         if (curLoad<minLoad){
             minLoad=curLoad;
         }
@@ -49,7 +53,7 @@ public class UniformedDynamicVar extends EnergyMigrationPolicy{
 
 //        return (minLoad/curLoad);
 
-        return getTotalVar(vmList);
+        return getTotalVar(vmList)*(minLoad/curLoad);
 
     }
 
@@ -58,8 +62,8 @@ public class UniformedDynamicVar extends EnergyMigrationPolicy{
         List<Host> hostList = getHostList();
         Optional<Host> max = hostList.stream()
             .filter(e -> e.isSuitableForVm(vm))
-//            .filter(e->isNotHostOverloadedAfterAllocationWithOutQos(e,vm))
             .filter(e->isNotHostOverloadedAfterAllocation(e,vm))
+//            .filter(e->isNotHostOverloadedAfterAllocation(e,vm))
             .max(Comparator.comparingDouble(e->allocateCompare(e,vm)));
         return max;
     }
