@@ -24,7 +24,7 @@ public class Main {
 //
         FirstFitMig();
 //
-        staticVar();
+//        staticVar();
 
 //        worstFit();
 
@@ -38,7 +38,8 @@ public class Main {
     public static void MySim() throws IOException {
 
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"/Users/caohao/share.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"/Users/caohao/share.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"E://share.txt");
 
         migrationWithEnergy.run();
         migrationWithEnergy.print();
@@ -48,7 +49,8 @@ public class Main {
 
     public static void uniform() throws IOException {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/uniform.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/uniform.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"E://uniform.txt");
 
         migrationWithEnergy.run();
         migrationWithEnergy.print();
@@ -58,7 +60,8 @@ public class Main {
 
 
     public static void staticVar() throws IOException {
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new StaticVarThreshold(),"/Users/caohao/staticVar.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new StaticVarThreshold(),"/Users/caohao/staticVar.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new StaticVarThreshold(),"E://staticVar.txt");
 
         migrationWithEnergy.run();
         migrationWithEnergy.print();
@@ -70,7 +73,8 @@ public class Main {
 
     public static void worstFit() throws IOException {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"/Users/caohao/worstFit.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"/Users/caohao/worstFit.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"E://worstFit.txt");
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
@@ -79,7 +83,8 @@ public class Main {
 
     public static void FirstFit() throws IOException {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/firstFit.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/firstFit.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"E://firstFit.txt");
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
@@ -88,7 +93,8 @@ public class Main {
 
     public static void FirstFitMig() throws IOException {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFitMigration(),"/Users/caohao/firstFitMig.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFitMigration(),"/Users/caohao/firstFitMig.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFitMigration(),"E://firstFitMig.txt");
         migrationWithEnergy.run();
         migrationWithEnergy.print();
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
