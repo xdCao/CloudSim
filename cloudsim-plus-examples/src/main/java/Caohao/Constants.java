@@ -10,8 +10,8 @@ public class Constants {
 
     public static final int SCHEDULE_INTERVAL = 1;
 
-    public static final int HOSTS = 25;
-    public static final int VMS = 300;
+    public static final int HOSTS = 100;
+    public static final int VMS = 500;
 
     public static final double TIME=300;
 
@@ -19,7 +19,7 @@ public class Constants {
 
     public static final int    HOST_INITIAL_PES = 64;
 
-    public static final long   HOST_BW = 16000L; //Mb/s
+    public static final long   HOST_BW = 30000L; //Mb/s
 
 
     public static final int    VM_MIPS = 1000; //for each PE

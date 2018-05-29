@@ -5,6 +5,7 @@ import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicyFirstFit;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationBestFitStaticThreshold;
 import org.cloudbus.cloudsim.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,24 +16,26 @@ import java.util.List;
 public class Main {
 
 
-    public static void main(String[] args) {
-//        MySim();
-
+    public static void main(String[] args) throws IOException {
+//
         uniform();
 
-//        staticVar();
+        FirstFit();
 //
-//        FirstFit();
+        FirstFitMig();
 //
-//        FirstFitMig();
+        staticVar();
 
 //        worstFit();
+
+//        MySim();
+
 
 
 
     }
 
-    public static void MySim() {
+    public static void MySim() throws IOException {
 
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"/Users/caohao/share.txt");
@@ -43,7 +46,7 @@ public class Main {
 
     }
 
-    public static void uniform(){
+    public static void uniform() throws IOException {
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/uniform.txt");
 
@@ -54,7 +57,7 @@ public class Main {
     }
 
 
-    public static void staticVar(){
+    public static void staticVar() throws IOException {
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new StaticVarThreshold(),"/Users/caohao/staticVar.txt");
 
         migrationWithEnergy.run();
@@ -65,7 +68,7 @@ public class Main {
 
 
 
-    public static void worstFit() {
+    public static void worstFit() throws IOException {
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new WorstFit(),"/Users/caohao/worstFit.txt");
         migrationWithEnergy.run();
@@ -74,7 +77,7 @@ public class Main {
     }
 
 
-    public static void FirstFit() {
+    public static void FirstFit() throws IOException {
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/firstFit.txt");
         migrationWithEnergy.run();
@@ -83,7 +86,7 @@ public class Main {
     }
 
 
-    public static void FirstFitMig(){
+    public static void FirstFitMig() throws IOException {
 
         MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFitMigration(),"/Users/caohao/firstFitMig.txt");
         migrationWithEnergy.run();

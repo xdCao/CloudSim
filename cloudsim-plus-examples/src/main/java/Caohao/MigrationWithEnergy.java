@@ -6,6 +6,7 @@ import Caohao.Model.NonLinearPowerModel;
 import Caohao.Model.PowerTimeStamp;
 import Caohao.entity.QosCloudlet;
 import Caohao.entity.QosVm;
+import Caohao.workload.WorkloadProducer;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerHeuristic;
@@ -77,6 +78,8 @@ public class MigrationWithEnergy implements Runnable{
 
     public int clock=1;
 
+    private Map<String,List<?>> datatMap;
+
 
     FileWriter fw = null;
     BufferedWriter bw = null;
@@ -88,9 +91,11 @@ public class MigrationWithEnergy implements Runnable{
     PrintWriter pw1 = null;
 
 
-    MigrationWithEnergy(VmAllocationPolicy allocationPolicy,String fileName){
+    MigrationWithEnergy(VmAllocationPolicy allocationPolicy,String fileName) throws IOException {
         this.allocationPolicy=allocationPolicy;
         share=new File(fileName);
+        WorkloadProducer producer=new WorkloadProducer();
+        datatMap=producer.readVmWorkLoad();
     }
 
 
@@ -356,12 +361,14 @@ public class MigrationWithEnergy implements Runnable{
     private void dynamicCreateVmsAndTasks(DatacenterBrokerSimple broker){
 
             // todo 这里取模
-            QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
-//        Vm vm=createVm(vmList.size(),broker,VM_PES);
-            index++;
+//            QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
+            QosVm vm=createVm(vmList.size(),broker,(Integer) datatMap.get("pes").get(index));
+
             vmList.add(vm);
-            double delay=Constants.delay[index%100];
+//            double delay=Constants.delay[index%100];
+            double delay=(Double) datatMap.get("delay").get(index);
             broker.submitVm(vm);
+        index++;
 
             UtilizationModelFull um = new UtilizationModelFull();
             Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
@@ -377,9 +384,11 @@ public class MigrationWithEnergy implements Runnable{
 
     public QosVm createVm(int id,DatacenterBroker broker, int pes) {
         // todo 这里取模
-        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]-QOS_CHANGE);
+//        QosVm vm = new QosVm(id,VM_MIPS, pes,Constants.taskQos[index%100]-QOS_CHANGE);
+        QosVm vm = new QosVm(id,VM_MIPS, pes,(Double) datatMap.get("qos").get(index));
         vm
-            .setRam(VM_RAM).setBw((long)VM_BW[index%100]).setSize(VM_SIZE)
+//            .setRam(VM_RAM).setBw((long)VM_BW[index%100]).setSize(VM_SIZE)
+            .setRam(VM_RAM).setBw((Integer)datatMap.get("bw").get(index)).setSize(VM_SIZE)
             .setCloudletScheduler(new CloudletSchedulerSpaceShared());
         vm.getUtilizationHistory().enable();
         return vm;
@@ -391,7 +400,8 @@ public class MigrationWithEnergy implements Runnable{
         UtilizationModel utilizationModelFull = new UtilizationModelFull();
         final Cloudlet cloudlet =
             // todo 这里取模
-            new QosCloudlet(Constants.taskLength[taskIndex%100]*Constants.taskLengthChange,(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex%100])
+//            new QosCloudlet(Constants.taskLength[taskIndex%100]*Constants.taskLengthChange,(int)vm.getNumberOfPes(),Constants.taskQos[taskIndex%100])
+            new QosCloudlet((Integer)datatMap.get("taskLength").get(taskIndex),(int)vm.getNumberOfPes(),(Double) datatMap.get("qos").get(taskIndex))
                 .setFileSize(CLOUDLET_FILESIZE)
                 .setOutputSize(CLOUDLET_OUTPUTSIZE)
                 .setUtilizationModelCpu(cpuUtilizationModel)
