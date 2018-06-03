@@ -10,10 +10,10 @@ public class Constants {
 
     public static final int SCHEDULE_INTERVAL = 1;
 
-    public static final int HOSTS = 100;
+    public static final int HOSTS = 50;
     public static final int VMS = 500;
 
-    public static final double TIME=300;
+    public static final double TIME=500;
 
     public static final int    HOST_MIPS = 1000; //for each PE
 

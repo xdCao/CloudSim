@@ -244,6 +244,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         return max;
     }
 
+
     public double allocateCompare(Host host, Vm vm) {
 
         return CalHelper.getHostCpuUtilizationPercentage(host);

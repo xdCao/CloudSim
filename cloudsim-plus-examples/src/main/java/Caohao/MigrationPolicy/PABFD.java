@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import static Caohao.CalHelper.calDistribution;
 import static Caohao.CalHelper.calDistributionAddNext;
 
-public class FirstFitMigration extends VmAllocationPolicyMigrationAbstract {
+public class PABFD extends VmAllocationPolicyMigrationAbstract {
 
 
     static class VmSelection extends PowerVmSelectionPolicy{
@@ -48,7 +48,7 @@ public class FirstFitMigration extends VmAllocationPolicyMigrationAbstract {
         }
     }
 
-    public FirstFitMigration() {
+    public PABFD() {
         super(new VmSelection());
     }
 
@@ -182,11 +182,6 @@ public class FirstFitMigration extends VmAllocationPolicyMigrationAbstract {
 
 
     protected double getPowerSaveAfterAllocationDifference(final Host des, final Vm vm){
-        double migCostPower=getPowerAfterAllocationDifference(des, vm);
-        double migTime = (double) vm.getRam().getCapacity() / (double) vm.getHost().getBw().getAvailableResource();
-        double migCost = migCostPower * migTime;
-
-
 
         final double powerAfterAllocation = getPowerAfterAllocation(des, vm);
 
@@ -195,14 +190,17 @@ public class FirstFitMigration extends VmAllocationPolicyMigrationAbstract {
         double addDelta = powerAfterAllocation - des.getPowerModel().getPower(CalHelper.getHostCpuUtilizationPercentage(des));
         double decDelta= source.getPowerModel().getPower(CalHelper.getHostCpuUtilizationPercentage(source))-source.getPowerModel().getPower(CalHelper.getHostCpuPercentAfterDeallocate(source,vm));
 
-        Cloudlet cloudlet = vm.getCloudletScheduler().getCloudletList().get(0);
-        double remainTime = cloudlet.getTotalLength() / (Constants.HOST_MIPS*cloudlet.getNumberOfPes()) - (cloudlet.getBroker().getSimulation().clock()-cloudlet.getExecStartTime());
+//        Cloudlet cloudlet = vm.getCloudletScheduler().getCloudletList().get(0);
+//        double remainTime = cloudlet.getTotalLength() / (Constants.HOST_MIPS*cloudlet.getNumberOfPes()) - (cloudlet.getBroker().getSimulation().clock()-cloudlet.getExecStartTime());
+//
+//        double addEne=(remainTime)*addDelta;//这里应该考虑迁移时间进去
+//
+//        double decEne=(remainTime)*decDelta;
+//        double powerSave=decEne-addEne;
+//        return powerSave;
 
-        double addEne=(remainTime-migTime)*addDelta;//这里应该考虑迁移时间进去
+        return decDelta-addDelta;
 
-        double decEne=(remainTime-migTime)*decDelta;
-        double powerSave=decEne-addEne-migCost;
-        return powerSave;
     }
 
 

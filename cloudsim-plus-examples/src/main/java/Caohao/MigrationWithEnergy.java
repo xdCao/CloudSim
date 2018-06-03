@@ -76,6 +76,9 @@ public class MigrationWithEnergy implements Runnable{
 
     public File share;
 
+    public File fileOfPms;
+    public File fileOfVms;
+
     public int clock=1;
 
     private Map<String,List<?>> datatMap;
@@ -90,10 +93,20 @@ public class MigrationWithEnergy implements Runnable{
     BufferedWriter bw1 = null;
     PrintWriter pw1 = null;
 
+    FileWriter fw2 = null;
+    BufferedWriter bw2 = null;
+    PrintWriter pw2 = null;
 
-    MigrationWithEnergy(VmAllocationPolicy allocationPolicy,String fileName) throws IOException {
+    FileWriter fw3 = null;
+    BufferedWriter bw3 = null;
+    PrintWriter pw3 = null;
+
+
+    MigrationWithEnergy(VmAllocationPolicy allocationPolicy,String fileName,String fileNameOfPMS,String fileNameOfVMS) throws IOException {
         this.allocationPolicy=allocationPolicy;
         share=new File(fileName);
+        fileOfPms=new File(fileNameOfPMS);
+        fileOfVms=new File(fileNameOfVMS);
         WorkloadProducer producer=new WorkloadProducer();
         datatMap=producer.readVmWorkLoad();
     }
@@ -112,6 +125,15 @@ public class MigrationWithEnergy implements Runnable{
             fw1 = new FileWriter(share, false);
             bw1 = new BufferedWriter(fw1);
             pw1 = new PrintWriter(bw1);
+
+            fw2 = new FileWriter(fileOfPms, true);
+            bw2 = new BufferedWriter(fw2);
+            pw2 = new PrintWriter(bw2);
+
+            fw3 = new FileWriter(fileOfVms, true);
+            bw3 = new BufferedWriter(fw3);
+            pw3 = new PrintWriter(bw3);
+
         } catch (IOException e) {
             System.exit(0);
         }
@@ -186,6 +208,12 @@ public class MigrationWithEnergy implements Runnable{
             pw1.println();
         }
 
+        pw2.printf("%d %15.2f",Constants.HOSTS,timeEnergyMap.get(timeEnergyMap.size()-1).getEnergy());
+        pw2.println();
+
+        pw3.printf("%d %15.2f",Constants.VMS,timeEnergyMap.get(timeEnergyMap.size()-1).getEnergy());
+        pw3.println();
+
 //        pw.println();pw.println();
 //
 //        for (int i = 0; i < timeEnergyMap.size(); i++) {
@@ -205,6 +233,14 @@ public class MigrationWithEnergy implements Runnable{
             pw1.close();
             bw1.close();
             fw1.close();
+
+            pw2.close();
+            bw2.close();
+            fw2.close();
+
+            pw3.close();
+            bw3.close();
+            fw3.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
