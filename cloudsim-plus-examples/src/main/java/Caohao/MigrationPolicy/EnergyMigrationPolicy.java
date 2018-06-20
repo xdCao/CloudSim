@@ -45,31 +45,33 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
 
     public double getDynamicVar(){
 
-        List<Host> hostList = getHostList();
+        return 10;
 
-        List<QosVm> vmList=new ArrayList<>();
-
-        for (Host host:hostList){
-            vmList.addAll(host.getVmList());
-        }
-
-        double vmCap=0;
-        double pmCap=HOSTS*HOST_INITIAL_PES*HOST_MIPS;
-
-        for (QosVm vm:vmList){
-
-            vmCap+=vm.getCurrentRequestedTotalMips();
-//            pmCap+=vm.getQos()*HOST_MIPS*HOST_INITIAL_PES;
-
-        }
-
-        double loadFactor=vmCap/pmCap;
-
-        load=loadFactor>load?loadFactor:load;
-
-//        System.out.println("----------------------------------------------------------------------------------------------------"+load);
-
-        return VAR_THRESHOLD/loadFactor;
+//        List<Host> hostList = getHostList();
+//
+//        List<QosVm> vmList=new ArrayList<>();
+//
+//        for (Host host:hostList){
+//            vmList.addAll(host.getVmList());
+//        }
+//
+//        double vmCap=0;
+//        double pmCap=HOSTS*HOST_INITIAL_PES*HOST_MIPS;
+//
+//        for (QosVm vm:vmList){
+//
+//            vmCap+=vm.getCurrentRequestedTotalMips();
+////            pmCap+=vm.getQos()*HOST_MIPS*HOST_INITIAL_PES;
+//
+//        }
+//
+//        double loadFactor=vmCap/pmCap;
+//
+//        load=loadFactor>load?loadFactor:load;
+//
+////        System.out.println("----------------------------------------------------------------------------------------------------"+load);
+//
+//        return VAR_THRESHOLD/loadFactor;
 
     }
 
@@ -134,7 +136,7 @@ public class EnergyMigrationPolicy extends VmAllocationPolicyMigrationAbstract{
         double var = CalHelper.calDistributionAddNext(host,(QosVm) vm);
 
         /*不违反QOS且方差比原来小*/
-//        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=CalHelper.calDistribution(host));
+//        return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold);
         return (CalHelper.getHostCpuUtilizationPercentageNext(host,vm)<=nextUpperHold)&&(var<=getDynamicVar());// todo 新的动态门限
 
     }

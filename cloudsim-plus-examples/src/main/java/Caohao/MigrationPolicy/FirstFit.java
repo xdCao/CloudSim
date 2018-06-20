@@ -26,9 +26,19 @@ public class FirstFit extends VmAllocationPolicyFirstFit {
             .sorted()
             .filter(h -> h.isSuitableForVm(vm))
             .filter(h->isNotHostOverloadedAfterAllocationWithOutQos(h,vm))
-            .findFirst();
+            .max(Comparator.comparingDouble(e->allocateCompare(e,vm)));
     }
 
+
+    public double allocateCompare(Host host, Vm vm) {
+
+        return CalHelper.getHostCpuUtilizationPercentage(host);
+//
+//        double var = calDistributionAddNext(host, (QosVm) vm) / calDistribution(host);
+//        double percent=CalHelper.getHostCpuUtilizationPercentageNext(host,vm);
+//        return percent/var;
+
+    }
 
     public double getOverUtilizationThreshold(Host host) {
         List<QosVm> vmList = host.getVmList();

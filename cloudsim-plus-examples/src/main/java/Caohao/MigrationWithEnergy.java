@@ -79,7 +79,7 @@ public class MigrationWithEnergy implements Runnable{
     public File fileOfPms;
     public File fileOfVms;
 
-    public int clock=1;
+    public int clock=0;
 
     private Map<String,List<?>> datatMap;
 
@@ -176,12 +176,12 @@ public class MigrationWithEnergy implements Runnable{
 
                 timePowerMap.add(new PowerTimeStamp(info.getTime(),getCurrentTotalPower()));
 
-                if ((int)info.getTime()==clock){
+//                if ((int)info.getTime()==(clock+1)){
                     if (vmList.size()<Constants.VMS){
                         dynamicCreateVmsAndTasks(broker);
                     }
-                    clock++;
-                }
+//                    clock++;
+//                }
 
 
             }
@@ -396,23 +396,37 @@ public class MigrationWithEnergy implements Runnable{
 
     private void dynamicCreateVmsAndTasks(DatacenterBrokerSimple broker){
 
-            // todo 这里取模
-//            QosVm vm=createVm(vmList.size(),broker,Constants.vmPes[index%100]);
-            QosVm vm=createVm(vmList.size(),broker,(Integer) datatMap.get("pes").get(index));
+        if (clock<VMS){
+            Double delay=(Double) datatMap.get("delay").get(clock);
+            clock++;
+            for (int i = 0; i < delay; i++) {
+                if (vmList.size()<VMS){
+                    QosVm vm=createVm(vmList.size(),broker,(Integer) datatMap.get("pes").get(index));
+                    vmList.add(vm);
+                    broker.submitVm(vm);
+                    index++;
+                    UtilizationModelFull um = new UtilizationModelFull();
+                    Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
+                    cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
+                    cloudletList.add(cloudlet);
+                    broker.submitCloudlet(cloudlet);
+                    broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
+                }
+            }
+        }
 
-            vmList.add(vm);
-//            double delay=Constants.delay[index%100];
-            double delay=(Double) datatMap.get("delay").get(index);
-            broker.submitVm(vm);
-        index++;
 
-            UtilizationModelFull um = new UtilizationModelFull();
-            Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
-//            cloudlet.setSubmissionDelay(delay);
-        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
-            cloudletList.add(cloudlet);
-            broker.submitCloudlet(cloudlet);
-            broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
+
+//        QosVm vm=createVm(vmList.size(),broker,(Integer) datatMap.get("pes").get(index));
+//        vmList.add(vm);
+//        broker.submitVm(vm);
+//        index++;
+//        UtilizationModelFull um = new UtilizationModelFull();
+//        Cloudlet cloudlet=createCloudlet(cloudletList.size(),vm,broker,um);
+//        cloudlet.addOnFinishListener(eventInfo->submitNewVmsAndCloudletsToBroker(eventInfo,broker));
+//        cloudletList.add(cloudlet);
+//        broker.submitCloudlet(cloudlet);
+//        broker.bindCloudletToVm(cloudlet, vm);//这行代码的顺序非常关键
 
     }
 

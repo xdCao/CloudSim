@@ -12,15 +12,11 @@ public class WorkloadProducer {
     private static Random random=new Random();
 
 
-    private static File vmFile = vmFile =new File("VmWorkload.txt");
+    private static File vmFile  =new File("VmWorkload.txt");
 
 
 
     public static void initVmWorkLoad() throws IOException {
-
-
-
-
 
         FileWriter fw=new FileWriter(vmFile,false);
         BufferedWriter bw=new BufferedWriter(fw);
@@ -42,18 +38,23 @@ public class WorkloadProducer {
 
 
         //delay
-        int delay=0;
-        for (int i = 0; i < Constants.VMS; i++) {
-            int newDelay=random.nextInt(1);
-            pw.printf("%d",delay+=newDelay);
-            delay=delay+newDelay;
+        double delay=0;
+        delay=P_rand(Constants.lamda)+1;
+        pw.printf("%f",delay);
+        pw.printf(" ");
+        for (int i = 1; i < Constants.VMS; i++) {
+//            int newDelay=random.nextInt(1);
+//            pw.printf("%d",delay+=newDelay);
+//            delay=delay+newDelay;
+            delay=P_rand(Constants.lamda);
+            pw.printf("%f",delay);
             pw.printf(" ");
         }
         pw.printf("\n");
 
         //qos
         for (int i = 0; i < Constants.VMS; i++) {
-            pw.printf("%2.1f",(double)(2+random.nextInt(8))/10);
+            pw.printf("%2.1f",(double)(5+random.nextInt(5))/10);
             pw.printf(" ");
         }
         pw.printf("\n");
@@ -69,6 +70,18 @@ public class WorkloadProducer {
         bw.close();
         fw.close();
 
+    }
+
+
+    public static double P_rand(double Lamda){      // 泊松分布
+        double x=0,b=1,c=Math.exp(-Lamda),u;
+        do {
+            u=Math.random();
+            b *=u;
+            if(b>=c)
+                x++;
+        }while(b>=c);
+        return x;
     }
 
     public Map<String,List<?>> readVmWorkLoad() throws IOException {
@@ -135,6 +148,24 @@ public class WorkloadProducer {
 
 //        WorkloadProducer producer=new WorkloadProducer();
 //        producer.readVmWorkLoad();
+
+//        File file=new File("p.txt");
+//        FileWriter fw=new FileWriter(file,false);
+//        BufferedWriter bw=new BufferedWriter(fw);
+//        PrintWriter pw=new PrintWriter(bw);
+//
+//        double temp=0.0;
+//        for (int i = 0; i < 100; i++) {
+//            double t=P_rand(2);
+//            pw.printf("%6.2f ",temp+t);
+//            pw.printf("\n");
+//            temp=temp+t;
+//        }
+//
+//        pw.close();
+//        bw.close();
+//        fw.close();
+
 
     }
 

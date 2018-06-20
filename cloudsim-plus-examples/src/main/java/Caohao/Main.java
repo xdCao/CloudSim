@@ -2,7 +2,10 @@ package Caohao;
 
 import Caohao.MigrationPolicy.*;
 
+import java.io.File;
 import java.io.IOException;
+
+import static Caohao.workload.WorkloadProducer.initVmWorkLoad;
 
 /**
  * created by xdCao on 2018/4/26
@@ -10,28 +13,80 @@ import java.io.IOException;
 
 public class Main {
 
+    public static int num=1;
+
 
     public static void main(String[] args) throws IOException {
 
 
-        //一共画三张图，横坐标分别为
-        //1.请求的虚拟机数量
-        //2.系统中物理机的规模
-        //3.系统的运行时间
+        File dir=new File("/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/");
+        dir.mkdir();
 
-        uniform();
 
-        improvedGreedy();
+            for (int j = 0; j < 100; j++) {
+
+                initVmWorkLoad();
+
+                //一共画三张图，横坐标分别为
+                //1.请求的虚拟机数量
+                //2.系统中物理机的规模
+                //3.系统的运行时间
+
+                uniform();
+
+                improvedGreedy();
 //
-        FirstFit();
+                FirstFit();
 ////
-        FirstFitMig();
+                FirstFitMig();
+
+                num++;
+
+            }
+
+//        for (int i = 0; i < 100; i++) {
+//
+//            initVmWorkLoad();
+//
+//            //一共画三张图，横坐标分别为
+//            //1.请求的虚拟机数量
+//            //2.系统中物理机的规模
+//            //3.系统的运行时间
+//
+//            uniform();
+//
+//            improvedGreedy();
+////
+//            FirstFit();
+//////
+//            FirstFitMig();
+//
+//            num++;
+//
+//        }
+
+//        initVmWorkLoad();
+//
+//        //一共画三张图，横坐标分别为
+//        //1.请求的虚拟机数量
+//        //2.系统中物理机的规模
+//        //3.系统的运行时间
+//
+//        uniform();
+//
+//        improvedGreedy();
+////
+//        FirstFit();
+//////
+//        FirstFitMig();
 //
 //        staticVar();
 
 //        worstFit();
 
 //        MySim();
+
+
 
 
     }
@@ -41,7 +96,7 @@ public class Main {
     private static void improvedGreedy() throws IOException {
 
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new ImprovedGreedy(),"/Users/caohao/greedy.txt","/Users/caohao/greedyPM.txt","/Users/caohao/greedyVM.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new ImprovedGreedy(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/greedy"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/greedyPM.txt","/Users/caohao/greedyVM.txt");
 //        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"E://greedy.txt");
 
         migrationWithEnergy.run();
@@ -49,6 +104,47 @@ public class Main {
         System.out.println("simulation time: "+migrationWithEnergy.getTime());
 
     }
+
+    public static void uniform() throws IOException {
+
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/uniform"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/uniformPM.txt","/Users/caohao/uniformVM.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"E://uniform.txt");
+
+        migrationWithEnergy.run();
+        migrationWithEnergy.print();
+        System.out.println("simulation time: "+migrationWithEnergy.getTime());
+
+    }
+
+    public static void FirstFit() throws IOException {
+
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/firstFit"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/firstFitPM.txt","/Users/caohao/firstFitVM.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"E://firstFit.txt");
+        migrationWithEnergy.run();
+        migrationWithEnergy.print();
+        System.out.println("simulation time: "+migrationWithEnergy.getTime());
+    }
+
+
+    public static void FirstFitMig() throws IOException {
+
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new PABFD(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/firstFitMig"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/firstFitMigPM.txt","/Users/caohao/firstFitMigVM.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new PABFD(),"E://firstFitMig.txt");
+        migrationWithEnergy.run();
+        migrationWithEnergy.print();
+        System.out.println("simulation time: "+migrationWithEnergy.getTime());
+
+    }
+
+
+
+
+
+
+
+
+
+    /*--------------------------------------------------------------------------------------------------*/
 
     public static void MySim() throws IOException {
 
@@ -62,16 +158,7 @@ public class Main {
 
     }
 
-    public static void uniform() throws IOException {
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"/Users/caohao/uniform.txt","/Users/caohao/uniformPM.txt","/Users/caohao/uniformVM.txt");
-//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new UniformedDynamicVar(),"E://uniform.txt");
-
-        migrationWithEnergy.run();
-        migrationWithEnergy.print();
-        System.out.println("simulation time: "+migrationWithEnergy.getTime());
-
-    }
 
 
     public static void staticVar() throws IOException {
@@ -96,25 +183,6 @@ public class Main {
     }
 
 
-    public static void FirstFit() throws IOException {
-
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"/Users/caohao/firstFit.txt","/Users/caohao/firstFitPM.txt","/Users/caohao/firstFitVM.txt");
-//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new FirstFit(),"E://firstFit.txt");
-        migrationWithEnergy.run();
-        migrationWithEnergy.print();
-        System.out.println("simulation time: "+migrationWithEnergy.getTime());
-    }
-
-
-    public static void FirstFitMig() throws IOException {
-
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new PABFD(),"/Users/caohao/firstFitMig.txt","/Users/caohao/firstFitMigPM.txt","/Users/caohao/firstFitMigVM.txt");
-//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new PABFD(),"E://firstFitMig.txt");
-        migrationWithEnergy.run();
-        migrationWithEnergy.print();
-        System.out.println("simulation time: "+migrationWithEnergy.getTime());
-
-    }
 
 
 }

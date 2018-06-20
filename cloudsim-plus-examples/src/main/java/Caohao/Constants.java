@@ -6,12 +6,14 @@ package Caohao;
 
 public class Constants {
 
+    public static double lamda=0.6;
+
     public static final double VAR_THRESHOLD=0.0015;
 
     public static final int SCHEDULE_INTERVAL = 1;
 
-    public static final int HOSTS = 50;
-    public static final int VMS = 500;
+    public static final int HOSTS = 100;
+    public static final int VMS = 1000;
 
     public static final double TIME=500;
 
