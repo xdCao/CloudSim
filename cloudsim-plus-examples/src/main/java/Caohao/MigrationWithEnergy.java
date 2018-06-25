@@ -176,7 +176,7 @@ public class MigrationWithEnergy implements Runnable{
 
                 timePowerMap.add(new PowerTimeStamp(info.getTime(),getCurrentTotalPower()));
 
-//                if ((int)info.getTime()==(clock+1)){
+//                if ((int)info.getTime()==(clock)){
                     if (vmList.size()<Constants.VMS){
                         dynamicCreateVmsAndTasks(broker);
                     }

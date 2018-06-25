@@ -1,25 +1,132 @@
 package Caohao;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Time;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SimulationProcess {
 
+    private static int num=15;
 
+    private static double start=0.1;
 
     public static void main(String[] args) throws IOException {
 
-        firstFitLambda();
-        firstFitMigLambda();
-        greedyLambda();
-        uniformLambda();
+//        firstFitLambda();
+//        firstFitMigLambda();
+//        greedyLambda();
+//        uniformLambda();
+
+
+        time("firstFit");
+        time("firstFitMig");
+        time("greedy");
+        time("uniform");
+
+//        pm("firstFit");
+//        pm("firstFitMig");
+//        pm("greedy");
+//        pm("uniform");
 
 
     }
+
+    public static void pm(String name) throws IOException{
+
+        File wFile=new File("/Users/caohao/"+name+"PM.txt");
+        FileWriter fw=new FileWriter(wFile,false);
+        BufferedWriter bw=new BufferedWriter(fw);
+        PrintWriter pw=new PrintWriter(bw);
+
+        for (int i = 0; i < 10; i++) {
+            int index=20+20*i;
+            List<Double> pm=new ArrayList<>();
+            for (int j = 1; j < 101; j++) {
+                File file=new File("/Users/caohao/vm1000pm"+index+"lambda1.0/"+name+j+"-vm1000pm"+index+"lambda1.0.txt");
+                double[] doubles = readLastLine(file);
+                pm.add(doubles[1]);
+            }
+            for(Double num:pm){
+                System.out.print(num+", ");
+            }
+            System.out.println();
+            Double collect = pm.stream().collect(Collectors.averagingDouble(Double::doubleValue));
+            System.out.println(collect);
+            pw.printf("%10.6f",collect);
+            pw.printf("\n");
+        }
+
+        pw.close();
+        bw.close();
+        fw.close();
+
+    }
+
+
+    public static void time(String name) throws IOException{
+
+        File wFile=new File("/Users/caohao/"+name+"Time.txt");
+        FileWriter fw=new FileWriter(wFile,false);
+        BufferedWriter bw=new BufferedWriter(fw);
+        PrintWriter pw=new PrintWriter(bw);
+
+
+        HashMap<Double,ArrayList<Double>> hashMap=new HashMap<>();
+
+        for (int j = 1; j < 101; j++) {
+            File file=new File("/Users/caohao/vm1000pm100lambda0.8/"+name+j+"-vm1000pm100lambda0.8.txt");
+            FileReader fr=new FileReader(file);
+            BufferedReader br=new BufferedReader(fr);
+            String str = null;
+            while((str = br.readLine()) != null) {
+                double[] doubles = getDoubles(str);
+                if (hashMap.containsKey(doubles[0])){
+                    hashMap.get(doubles[0]).add(doubles[1]);
+                }else {
+                    ArrayList<Double> list=new ArrayList<>();
+                    list.add(doubles[1]);
+                    hashMap.put(doubles[0],list);
+                }
+            }
+
+            br.close();
+            fr.close();
+
+        }
+
+        HashMap<Double,Double> result=new HashMap<>();
+
+        for (Map.Entry entry:hashMap.entrySet()){
+
+            double tmp=0;
+            ArrayList<Double> value = (ArrayList<Double>) entry.getValue();
+            for (Double ddouble:value){
+                tmp+=ddouble;
+            }
+            tmp=tmp/value.size();
+            result.put((Double) entry.getKey(),tmp);
+
+        }
+
+        for (Map.Entry entry:result.entrySet()){
+
+            pw.printf("%10.6f %10.6f",entry.getKey(),entry.getValue());
+            pw.printf("\n");
+
+        }
+
+
+
+        pw.close();
+        bw.close();
+        fw.close();
+
+    }
+
+
 
 
 
@@ -30,8 +137,8 @@ public class SimulationProcess {
         BufferedWriter bw=new BufferedWriter(fw);
         PrintWriter pw=new PrintWriter(bw);
 
-        for (int i = 0; i < 6; i++) {
-            double index=0.5+i*0.5;
+        for (int i = 0; i < num; i++) {
+            double index=oneAfterPoint(start+i*0.1);
             List<Double> firstFitLambda=new ArrayList<>();
             for (int j = 1; j < 101; j++) {
                 File file=new File("/Users/caohao/vm1000pm100lambda"+index+"/firstFit"+j+"-vm1000pm100lambda"+index+".txt");
@@ -63,8 +170,8 @@ public class SimulationProcess {
         BufferedWriter bw=new BufferedWriter(fw);
         PrintWriter pw=new PrintWriter(bw);
 
-        for (int i = 0; i < 6; i++) {
-            double index=0.5+i*0.5;
+        for (int i = 0; i < num; i++) {
+            double index=oneAfterPoint(start+i*0.1);
             List<Double> firstFitMigLambda=new ArrayList<>();
             for (int j = 1; j < 101; j++) {
                 File file=new File("/Users/caohao/vm1000pm100lambda"+index+"/firstFitMig"+j+"-vm1000pm100lambda"+index+".txt");
@@ -92,8 +199,8 @@ public class SimulationProcess {
         BufferedWriter bw=new BufferedWriter(fw);
         PrintWriter pw=new PrintWriter(bw);
 
-        for (int i = 0; i < 6; i++) {
-            double index=0.5+i*0.5;
+        for (int i = 0; i < num; i++) {
+            double index=oneAfterPoint(start+i*0.1);
             List<Double> greedyLambda=new ArrayList<>();
             for (int j = 1; j < 101; j++) {
                 File file=new File("/Users/caohao/vm1000pm100lambda"+index+"/greedy"+j+"-vm1000pm100lambda"+index+".txt");
@@ -122,8 +229,8 @@ public class SimulationProcess {
         BufferedWriter bw=new BufferedWriter(fw);
         PrintWriter pw=new PrintWriter(bw);
 
-        for (int i = 0; i < 6; i++) {
-            double index=0.5+i*0.5;
+        for (int i = 0; i < num; i++) {
+            double index=oneAfterPoint(start+i*0.1);
             List<Double> uniformLambda=new ArrayList<>();
             for (int j = 1; j < 101; j++) {
                 File file=new File("/Users/caohao/vm1000pm100lambda"+index+"/uniform"+j+"-vm1000pm100lambda"+index+".txt");
@@ -193,6 +300,15 @@ public class SimulationProcess {
             }
         }
         return doubles;
+    }
+
+
+    public static double oneAfterPoint(double d){
+
+        String strD = String.valueOf(d*10);
+        String[] strArr = strD.split("\\.");
+
+        return Double.parseDouble(strArr[0])/10;
     }
 
 

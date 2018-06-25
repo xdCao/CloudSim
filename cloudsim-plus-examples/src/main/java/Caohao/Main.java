@@ -19,30 +19,30 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
 
-        File dir=new File("/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/");
-        dir.mkdir();
-
-
-            for (int j = 0; j < 100; j++) {
-
-                initVmWorkLoad();
-
-                //一共画三张图，横坐标分别为
-                //1.请求的虚拟机数量
-                //2.系统中物理机的规模
-                //3.系统的运行时间
-
-                uniform();
-
-                improvedGreedy();
+//        File dir=new File("/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/");
+//        dir.mkdir();
 //
-                FirstFit();
+//
+//            for (int j = 0; j < 100; j++) {
+//
+//                initVmWorkLoad();
+//
+//                //一共画三张图，横坐标分别为
+//                //1.请求的虚拟机数量
+//                //2.系统中物理机的规模
+//                //3.系统的运行时间
+//
+//                uniform();
+//
+//                improvedGreedy();
 ////
-                FirstFitMig();
-
-                num++;
-
-            }
+//                FirstFit();
+//////
+//                FirstFitMig();
+//
+//                num++;
+//
+//            }
 
 //        for (int i = 0; i < 100; i++) {
 //
@@ -74,7 +74,7 @@ public class Main {
 //
 //        uniform();
 //
-//        improvedGreedy();
+        improvedGreedy();
 ////
 //        FirstFit();
 //////
@@ -96,7 +96,8 @@ public class Main {
     private static void improvedGreedy() throws IOException {
 
 
-        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new ImprovedGreedy(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/greedy"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/greedyPM.txt","/Users/caohao/greedyVM.txt");
+//        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new ImprovedGreedy(),"/Users/caohao/"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+"/greedy"+num+"-"+"vm"+Constants.VMS+"pm"+Constants.HOSTS+"lambda"+Constants.lamda+".txt","/Users/caohao/greedyPM.txt","/Users/caohao/greedyVM.txt");
+        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new ImprovedGreedy(),"/Users/caohao/1.txt","/Users/caohao/2.txt","/Users/caohao/3.txt");
 //        MigrationWithEnergy migrationWithEnergy = new MigrationWithEnergy(new EnergyMigrationPolicy(),"E://greedy.txt");
 
         migrationWithEnergy.run();
